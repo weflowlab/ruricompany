@@ -1,26 +1,280 @@
+/* =============================================================================
+ * globals.css — 프로젝트 전역 스타일 (Tailwind CSS v4)
+ *
+ * 역할
+ *  - Tailwind v4 를 `@import` 방식으로 로드하고, `@theme` 블록에 디자인 토큰을 등록한다.
+ *    (v4 부터는 tailwind.config.js 파일이 없고, CSS 안에서 토큰을 선언하면
+ *     `bg-primary` / `text-ink-sub` 같은 유틸리티 클래스가 자동 생성된다.)
+ *  - 한국어 본문에 맞는 기본 타이포그래피 / 줄바꿈 규칙을 잡는다.
+ *  - 마퀴(무한 흐름 배너)용 키프레임과 유틸 클래스를 정의한다.
+ *  - `prefers-reduced-motion` 사용자를 위해 모든 애니메이션을 정지시킨다.
+ * ========================================================================== */
+
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* -----------------------------------------------------------------------------
+ * 1) 디자인 토큰 — 색상
+ *
+ * `@theme` 에 선언한 `--color-*` 변수는 곧바로 Tailwind 색상 유틸리티가 된다.
+ *   --color-primary  →  bg-primary / text-primary / border-primary / ring-primary ...
+ *
+ * `inline` 키워드를 붙이지 않았으므로 유틸리티는 `var(--color-primary)` 를 참조한다.
+ * 덕분에 CSS 변수만 덮어써도 테마를 바꿀 수 있다.
+ * -------------------------------------------------------------------------- */
+@theme {
+  /* ---------------------------------------------------------------------------
+   * 컬러 방향 (클라이언트 요청사항 13·14번 반영)
+   *   13. 원하는 컬러 느낌 → "블루 계열(신뢰감)" + "파스텔톤(부드러움)"
+   *   14. 원하는 분위기    → "신뢰감있는 / 전문적인"
+   *
+   * 그래서 채도가 높은 원색 대신,
+   *   - 주조색은 차분한 미드톤 블루 (금융·상담 업종의 신뢰감)
+   *   - 배경·강조면은 파스텔 톤 (부드러움, 시각적 피로도 낮춤)
+   * 로 구성했다. 컴포넌트가 hex 를 직접 쓰지 않고 전부 이 토큰을 참조하므로,
+   * 여기 값만 바꾸면 사이트 전체 톤이 한 번에 바뀐다.
+   *
+   * --------------------------------------------------------------------------
+   * ★ 파스텔 전략 변경 (2026-07-30) — "여러 색조" → "블루 한 색조의 명도 단계"
+   * --------------------------------------------------------------------------
+   * 원래는 민트·크림·라벤더 파스텔 3색을 따로 두고 서비스 카드에서 나눠 썼다.
+   * 두 가지 문제가 있었다.
+   *   (1) 그 3색을 쓰는 곳이 서비스 카드 하나뿐이어서, 화면 대부분에는 파스텔이
+   *       전혀 나타나지 않았다. 요청사항 13번의 "파스텔톤(부드러움)"이 사실상
+   *       구현되지 않은 상태였다.
+   *   (2) 색조가 블루·민트·크림·라벤더로 흩어지면 14번의 "전문적인" 톤이 깎인다.
+   *
+   * 그래서 방향을 바꿨다. 색조는 **블루 하나로 고정**하고, 명도만 3단계로 나눠
+   * 화면 전체에 넓게 깐다. 넓은 면에 옅은 색이 지속적으로 깔릴 때 "부드러움"이
+   * 느껴지고, 색조가 하나라 "전문적"과도 충돌하지 않는다.
+   *
+   *   primary       #2f6be4  진함 — 글자·버튼처럼 좁은 면
+   *   primary-soft  #eaf1fe  옅음 — 뱃지·아이콘 원형 같은 중간 면
+   *   surface       #eef4fc  옅음 — 섹션 배경처럼 가장 넓은 면
+   *
+   * 섹션 배경은 흰색과 surface 를 번갈아 깔아 리듬을 만든다.
+   *   히어로(흰) → 서비스 안내(파스텔) → 추천 차량(흰) → 이용 절차(이미지)
+   *   → FAQ(흰) → 문의하기(파스텔)
+   * ------------------------------------------------------------------------ */
+
+  /* 주조색 — CTA 버튼, 강조 단어, 활성 상태. 남색에 가까운 차분한 블루 */
+  --color-primary: #2f6be4;
+  /* 버튼 hover / active 시 한 톤 어두운 블루 */
+  --color-primary-hover: #1f55c4;
+  /* 파스텔 블루 — 뱃지 배경, 선택된 옵션 배경, 아이콘 원형 배경 등 옅은 면 */
+  --color-primary-soft: #eaf1fe;
+
+  /* 본문 진한 글자색. 순검정(#000) 대신 살짝 남색을 섞어 딱딱함을 덜었다 */
+  --color-ink: #1a2233;
+  /* 보조 글자색 (설명문·캡션·비활성 텍스트) */
+  --color-ink-sub: #5a6478;
+
+  /* 구분선 — 헤더 하단 라인, 카드 테두리, 아코디언 구분선 */
+  --color-line: rgba(26, 34, 51, 0.08);
+
+  /*
+   * 섹션 배경 — 흰 배경과 번갈아 까는 파스텔 블루.
+   * 예전 값 #f5f8fd 는 흰색과 거의 구분되지 않아 "파스텔톤"으로 읽히지 않았다.
+   * 한 단계 진하게 내려 색이 실제로 보이도록 했다.
+   * 이 면 위에 올라가는 보조 글자색(ink-sub #5a6478)의 대비는 5.38:1 로
+   * WCAG AA 기준(4.5:1)을 넘는다. 더 진하게 내리면 이 대비가 깨지므로 여기가 하한이다.
+   */
+  --color-surface: #eef4fc;
+
+  /*
+   * accent — 원래는 "월 리스료 할인가" 강조용 빨강이었다.
+   * 클라이언트 요청사항 8-1("금액 노출 회피")에 따라 가격 표기를 전부 제거했으므로
+   * 이제는 폼 유효성 검사 에러 메시지 전용으로만 쓴다.
+   * 톤도 강한 #e60023 에서 파스텔 계열에 어울리는 차분한 벽돌색으로 낮췄다.
+   */
+  --color-accent: #d14343;
+
+  /*
+   * 파스텔 보조색 3종(민트 #e6f6f3 / 크림 #fff6e9 / 라벤더 #f0edfb)은 제거했다.
+   * 유일한 소비처였던 서비스 카드가 블루 단일 색조로 정리되면서 쓸 곳이 없어졌다.
+   * 사유는 이 블록 상단의 "파스텔 전략 변경" 주석 참고.
+   * 다시 여러 색조가 필요해지면 그때 필요한 색만 추가할 것.
+   */
 }
 
+/* -----------------------------------------------------------------------------
+ * 2) 디자인 토큰 — 폰트
+ *
+ * layout.tsx 가 next/font 로 주입하는 `--font-geist-sans` / `--font-geist-mono`
+ * 변수를 아직 참조하고 있으므로, 그 값을 그대로 넘겨받도록 남겨 둔다.
+ * (create-next-app 잔재인 --background / --foreground 는 제거했다.)
+ *
+ * 여기서는 `@theme inline` 을 쓴다. 다른 CSS 변수를 값으로 참조할 때는
+ * inline 이어야 유틸리티가 변수를 한 번 더 감싸지 않고 바로 풀어서 쓴다.
+ * 한글 폰트가 없는 환경을 대비해 시스템 한글 폰트를 폴백으로 나열한다.
+ * -------------------------------------------------------------------------- */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-geist-sans), "Pretendard", "Apple SD Gothic Neo",
+    "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo,
+    monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* -----------------------------------------------------------------------------
+ * 3) 문서 기본값
+ * -------------------------------------------------------------------------- */
+
+html {
+  /* 앵커 링크(#consult, #vehicles ...) 클릭 시 부드럽게 스크롤 */
+  scroll-behavior: smooth;
+  /* 상단 고정 헤더(높이 80px)에 섹션 제목이 가려지지 않도록 스크롤 정지 위치를 보정 */
+  scroll-padding-top: 80px;
+  /* 모바일 사파리에서 글자 크기가 임의로 확대되는 것을 방지 */
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #ffffff;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  /* 한글 본문은 어절 중간에서 끊기면 가독성이 떨어지므로 어절 단위로만 줄바꿈 */
+  word-break: keep-all;
+  /* keep-all 로 인해 긴 URL/영문이 박스를 넘칠 수 있으니 최후의 수단으로 줄바꿈 허용 */
+  overflow-wrap: break-word;
+  line-height: 1.6;
+}
+
+/* 제목류는 본문보다 촘촘한 행간이 어울린다 */
+h1,
+h2,
+h3,
+h4 {
+  line-height: 1.3;
+  word-break: keep-all;
+}
+
+/*
+ * ★ 단어 쪼개짐 방지 (2026-07-30 추가)
+ *
+ * body 에만 word-break: keep-all 을 걸어 두면 상속으로 대부분 해결되지만,
+ * 두 군데에서 새어 나간다.
+ *   (1) 폼 컨트롤(button / input / select / textarea) — 브라우저 기본 스타일이
+ *       상속을 끊어 버려서 버튼 안의 "상담 신청하기" 같은 문구가
+ *       "상담 신청하" / "기" 로 쪼개져 떨어지는 일이 생긴다.
+ *   (2) Tailwind 의 break-words / break-all 같은 유틸이 붙은 요소.
+ *
+ * 그래서 전체 선택자로 한 번 더 못을 박는다. keep-all 은 **한 단어(어절) 안에서는
+ * 절대 줄을 바꾸지 않는** 규칙이라, 줄바꿈은 항상 띄어쓰기 자리에서만 일어난다.
+ * (긴 URL·영문처럼 통째로는 도저히 안 들어가는 경우만 아래 overflow-wrap 이
+ *  최후의 수단으로 끊어 준다. 이게 없으면 박스 밖으로 삐져나간다.)
+ *
+ * 유틸리티 클래스보다 우선순위가 낮아야 하므로(!important 를 쓰지 않는 이유),
+ * 특정 요소에서 정말 강제로 끊어야 하면 그 자리에서 break-all 을 주면 된다.
+ */
+*,
+*::before,
+*::after {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/*
+ * 마지막 줄에 단어 하나만 덩그러니 남는 것(고아 단어)도 함께 막는다.
+ * text-wrap: pretty 는 브라우저가 줄바꿈 지점을 재계산해 마지막 줄이 너무
+ * 짧아지지 않게 배분해 준다. 미지원 브라우저는 이 선언을 무시할 뿐 깨지지 않는다.
+ */
+p,
+li {
+  text-wrap: pretty;
+}
+
+/* 제목은 줄 길이를 고르게 나눠 두세 줄이 계단처럼 어긋나지 않게 한다 */
+h1,
+h2,
+h3,
+h4 {
+  text-wrap: balance;
+}
+
+/* 폼 요소가 브라우저 기본 폰트로 되돌아가는 것을 방지 */
+input,
+textarea,
+select,
+button {
+  font-family: inherit;
+}
+
+/* 키보드 사용자에게만 포커스 링을 보여 준다 (마우스 클릭 시에는 표시하지 않음) */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* -----------------------------------------------------------------------------
+ * 4) 마퀴(무한 흐름) 애니메이션
+ *
+ * 사용 패턴: 트랙 안에 동일한 카드 그룹을 "두 벌" 렌더링한 뒤
+ * 트랙 전체를 -50% 만큼 밀면, 두 번째 벌이 첫 번째 벌 자리에 정확히 도달하면서
+ * 끊김 없이 무한 반복되는 것처럼 보인다. (후기 마퀴 / 제휴사 로고 마퀴 공용)
+ * -------------------------------------------------------------------------- */
+
+/* 왼쪽으로 흐르는 마퀴 — 0% 지점에서 원위치, 100% 지점에서 트랙 절반만큼 이동 */
+@keyframes marquee-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/*
+ * .animate-marquee — 마퀴 트랙에 붙이는 유틸 클래스.
+ * 재생 속도는 인라인 style 로 `--marquee-duration` 변수를 넘겨 제어한다.
+ *   예) <div className="animate-marquee" style={{ '--marquee-duration': '40s' }}>
+ * 변수를 넘기지 않으면 기본 30초로 동작한다.
+ */
+.animate-marquee {
+  display: flex;
+  /* 자식 카드 개수만큼 가로로 늘어나야 하므로 내용 크기에 맞춘다 */
+  width: max-content;
+  /* linear 이어야 속도가 일정해 이음새가 티나지 않는다 */
+  animation: marquee-left var(--marquee-duration, 30s) linear infinite;
+  /* 애니메이션 중 텍스트가 흐릿해지지 않도록 GPU 레이어로 승격 */
+  will-change: transform;
+}
+
+/*
+ * 마퀴 일시정지 방법 두 가지
+ *  (1) 부모에 .marquee-hover-pause 를 달면 마우스를 올리거나
+ *      내부 요소가 키보드 포커스를 받는 동안 정지
+ *  (2) 트랙 자체에 data-paused="true" 를 주면 JS 로 정지 (모달 열림 등)
+ */
+.marquee-hover-pause:hover .animate-marquee,
+.marquee-hover-pause:focus-within .animate-marquee,
+.animate-marquee[data-paused="true"] {
+  animation-play-state: paused;
+}
+
+/* -----------------------------------------------------------------------------
+ * 5) 접근성 — 모션 최소화 설정 존중
+ *
+ * OS 에서 "동작 줄이기"를 켠 사용자에게는 자동 재생 애니메이션이 어지럼증을 유발한다.
+ * 모든 애니메이션/트랜지션을 사실상 0 으로 만들고, 부드러운 스크롤도 끈다.
+ * -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* 마퀴는 이동하지 않은 원위치(첫 번째 그룹)에서 정지시킨다 */
+  .animate-marquee {
+    animation: none !important;
+    transform: none !important;
+  }
 }

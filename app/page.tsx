@@ -1,65 +1,186 @@
-import Image from "next/image";
+/**
+ * page.tsx — 메인 랜딩 페이지 (`/`)
+ *
+ * 역할
+ *  - 각 섹션 컴포넌트를 위에서 아래로 조립하기만 한다.
+ *    실제 마크업·인터랙션은 전부 하위 섹션 컴포넌트가 책임진다.
+ *  - 데이터(app/_data/*)를 재사용 컴포넌트인 <VehicleSection /> 에 주입한다.
+ *
+ * ============================================================================
+ * ★ 구조 개편 이력 — 클라이언트 구글폼(2026-07-29 접수) 반영
+ * ============================================================================
+ *
+ * 구글폼 5번 "예상되는 페이지 및 섹션의 개수" → **5~7개**
+ * 구글폼 6번 "예상되는 섹션 구성"          → 메인(홈) / 서비스·제품 소개 / 문의하기
+ *
+ * 개편 전에는 섹션이 11개였다. 요청 범위를 넘어서므로 다음과 같이 7개로 줄였다.
+ *
+ *  [삭제] 텍스트 배너      — 정보량 없이 자리만 차지. 구글폼 8-1("조잡함") 회피 차원
+ *  [삭제] 제휴 금융사 마퀴 — 실제 제휴사 로고를 받지 못했고, 가상 로고를 흘리는 것은
+ *                            신뢰감(구글폼 14번)에 오히려 해가 된다
+ *  [통합] 차량 섹션 3개(인기 차량 / 일반 화물차 / 전기 화물차) → **추천 차량 1개**
+ *                            9대를 3열 × 3행으로 한 번에 보여 준다
+ *  [신설] **서비스 안내**   — 구글폼 6번이 명시한 "서비스/제품 소개".
+ *                            업종(구글폼 3번)이 신차 할부·장기렌트·리스 3종이므로
+ *                            세 방식을 비교하는 섹션이 반드시 필요하다
+ *
+ * 삭제한 두 섹션의 컴포넌트 파일(TextBanner.tsx / PartnerMarquee.tsx)은
+ * 한동안 보관하다가 0.1ver 정리(2026-07-30) 때 저장소에서 삭제했다.
+ * 되살릴 일이 생기면 git 이력에서 복원하면 된다.
+ *
+ * ----------------------------------------------------------------------------
+ * ★ 2차 축소 (2026-07-30) — 섹션 2개 삭제, 그중 1개는 곧바로 복구
+ * ----------------------------------------------------------------------------
+ *  [삭제] 고객 후기   ("신차 출고를 마친 고객들의 이야기", id="reviews") — 확정
+ *  [삭제 후 복구] 서비스 안내 ("신차를 타는 세 가지 방법", id="services")
+ *
+ * 서비스 안내를 되살린 이유
+ *   빼고 나서 요구사항을 다시 대조해 보니, 구글폼 6번이 명시한 3개 섹션
+ *   (메인 / **서비스·제품 소개** / 문의하기) 중 하나를 담당하는 화면이
+ *   통째로 사라진 상태였다. 업종(3번)이 할부·리스·장기렌트 3종인데
+ *   그 차이를 설명하는 자리가 없으면 방문자는 "뭘 골라야 하지"에서 막힌다.
+ *   대신 삭제 사유였던 "무거움"을 카드 단계에서 덜어 냈다.
+ *   (128px 아이콘 자리 제거 / 설명 3문장→1문장 / 특징 4개→3개 → 높이 약 절반)
+ *
+ * 고객 후기는 복구하지 않는다
+ *   후기 6건이 전부 창작한 예시라 실제 후기가 아니다. 없는 후기를 실은 화면은
+ *   구글폼 14번이 요구한 "신뢰감"에 오히려 해가 된다. 실제 후기를 받으면 그때
+ *   ReviewSection.tsx 와 app/_data/reviews.ts 를 git 이력에서 되살리면 된다.
+ *   (두 파일도 0.1ver 정리 때 저장소에서 삭제했다)
+ *
+ * 이에 따라 딸려 나온 정리
+ *   - 히어로 1번 슬라이드 CTA 가 잠시 죽은 링크(#services)가 되어 #consult 로
+ *     돌렸다. 섹션이 복구된 뒤에도 되돌리지 않았다. 문구를 "방식 비교 문의하기"로
+ *     바꿔 상담 유도(구글폼 4번)에 힘을 실은 쪽이 더 낫다고 판단했다.
+ *   - 파스텔 3색(민트·크림·라벤더)을 쓰던 곳이 서비스 카드뿐이었는데,
+ *     블루 단일 색조로 정리했다. 자세한 배경은 globals.css 컬러 토큰 주석 참고.
+ *   - 남은 섹션은 6개다. 구글폼 5번의 "5~7개" 범위 안이다.
+ *
+ * ----------------------------------------------------------------------------
+ * 섹션 배치 순서와 그 이유 (구글폼 4번 "예약·상담 문의 유도" 기준)
+ * ----------------------------------------------------------------------------
+ *  1. 히어로      — 무슨 업체인지 3초 안에 전달 + 즉시 상담 입력 가능
+ *  2. 서비스 안내 — "할부/리스/장기렌트 중 뭐가 맞지?" 라는 첫 질문에 바로 답
+ *  3. 추천 차량   — 방식을 이해한 다음 실제 차를 본다
+ *  4. 이용 절차   — "어떻게 진행되나" 불확실성 제거
+ *  5. FAQ         — 남은 반론·불안을 마지막으로 해소
+ *  6. 문의하기    — 위 흐름을 다 통과한 사람이 도착하는 전환 지점
+ *
+ * 즉 "이해 → 탐색 → 안심 → 전환" 순서다. 구글폼 7-1 에서 클라이언트가 말한
+ * "고객이 오래 머무르고 편하게 상담 남길 수 있는" 흐름을 이 배치로 구현했다.
+ *
+ * ----------------------------------------------------------------------------
+ * 서버 컴포넌트인 이유
+ * ----------------------------------------------------------------------------
+ *  - 이 파일에는 상태·이벤트 핸들러·브라우저 API 가 없고 조립만 한다.
+ *    따라서 'use client' 가 필요 없고, 서버에서 HTML 로 렌더되어 초기 로딩이 빠르다.
+ *  - 인터랙션이 필요한 섹션(Hero 캐러셀, FAQ 아코디언 등)은
+ *    각자 파일 최상단에 'use client' 를 선언한 클라이언트 컴포넌트이므로,
+ *    서버 컴포넌트인 이 페이지에서 그대로 자식으로 렌더할 수 있다.
+ *
+ * ----------------------------------------------------------------------------
+ * 레이아웃 메모
+ * ----------------------------------------------------------------------------
+ *  - 고정 헤더(<Header />)와 플로팅 CTA(<FloatingCta />)는 모든 페이지 공통이라
+ *    이 파일이 아니라 app/layout.tsx 에서 렌더한다.
+ *  - 헤더가 position: fixed / height: 80px 이므로 첫 섹션인 <HeroSection /> 이
+ *    내부에서 pt-20(=80px) 으로 자리를 비워 준다. 여기서 별도 보정을 하지 않는다.
+ *  - 앵커 스크롤 시 제목이 헤더에 가리지 않도록 globals.css 에
+ *    `scroll-padding-top: 80px` 이 걸려 있다.
+ *
+ * ----------------------------------------------------------------------------
+ * 앵커 id 대응표
+ * ----------------------------------------------------------------------------
+ *  - #services → ServiceSection  (자체 id)
+ *  - #vehicles → VehicleSection  (이 파일에서 id prop 으로 주입)
+ *  - #process  → ProcessSection  (자체 id)
+ *  - #faq      → FaqSection      (자체 id)
+ *  - #consult  → ConsultSection  (자체 id) — 모든 "상담받기" CTA 의 목적지
+ *
+ * 상단 GNB 를 제거한 뒤(2026-07-30, 사유는 Header.tsx 주석 참고) 실제로 링크가
+ * 걸려 있는 앵커는 히어로 슬라이드가 쓰는 #vehicles / #process 와, 모든 CTA 가
+ * 향하는 #consult 뿐이다. #services / #faq 는 링크 없이 남겨 두었다.
+ * 섹션 구분 자체가 의미 있고, 외부에서 특정 섹션으로 직접 링크를 보낼 때 쓸 수 있다.
+ */
+
+import HeroSection from "./_components/HeroSection";
+import ServiceSection from "./_components/ServiceSection";
+import VehicleSection from "./_components/VehicleSection";
+import ProcessSection from "./_components/ProcessSection";
+import FaqSection from "./_components/FaqSection";
+import ConsultSection from "./_components/ConsultSection";
+import Footer from "./_components/Footer";
+
+import { recommendedVehicles } from "./_data/vehicles";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <>
+      {/*
+        <main> 은 페이지당 하나여야 하므로 푸터를 제외한 본문 전체를 감싼다.
+        id="main-content" 는 layout.tsx 의 "본문 바로가기" 스킵 링크 목적지다.
+        flex-1 로 남는 세로 공간을 차지해, 콘텐츠가 짧아도 푸터가 화면 위로 올라오지 않는다.
+      */}
+      <main id="main-content" className="flex-1">
+        {/* ── 1. 히어로 (메인/홈) ───────────────────────────────────────────────
+            구글폼 6번의 "메인(홈)" 에 해당.
+            흰 배경 무대 가운데에 카피 4종이 2초 간격으로 로테이션되고(무한 루프,
+            도트/이전·다음/재생·일시정지), 그 아래 고정 CTA 2개가
+            #consult(상담 신청하기) / #vehicles(차량 라인업 보기) 로 보낸다.
+            상담 폼은 히어로에 두지 않는다 — 입력은 하단 문의 섹션(#consult) 하나로
+            모았다(2026-07-30 클라이언트 피드백). 개편 이력은 HeroSection.tsx 참고. */}
+        <HeroSection />
+
+        {/* ── 2. 서비스 안내 (id="services") ───────────────────────────────────
+            구글폼 6번의 "서비스/제품 소개" + 3번 업종(신차 할부·장기렌트·리스).
+            세 가지 구매 방식을 3열 비교 카드로 나란히 놓아, 방문자가 자기 상황에
+            맞는 방식을 스스로 찾을 수 있게 한다.
+            한 번 삭제했다가 카드를 가볍게 만들어 되살린 섹션이다(아래 3차 이력 참고).
+            금액·이자율은 일절 표기하지 않고 "성격"과 "이런 분께 맞다"만 서술한다
+            (구글폼 8-1 "금액 노출" 회피). */}
+        <ServiceSection />
+
+        {/* ── 3. 추천 차량 (id="vehicles") ─────────────────────────────────────
+            개편 전 차량 섹션 3개를 이 하나로 통합했다 (구글폼 5번 섹션 수 축소).
+            세단·SUV·전기·상용을 섞은 9대를 3열 × 3행으로 배치한다.
+            카드에서 차량가와 월 납입금 표기를 전부 제거하고 특징 태그로 대체했다
+            (구글폼 8-1). 금액은 상담을 통해서만 안내하며, 이는 구글폼 4번의
+            상담 유도 목적과도 방향이 같다. */}
+        <VehicleSection
+          id="vehicles"
+          title="용도에 맞춰 고르는 "
+          highlight="추천 차량"
+          description="세단부터 전기·상용까지 폭넓게 안내드립니다. 관심 있는 차량으로 바로 상담을 남겨 보세요."
+          vehicles={recommendedVehicles}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+
+        {/* ── 4. 이용 절차 (id="process") ──────────────────────────────────────
+            상담 신청부터 출고·사후 관리까지의 5단계 안내.
+            "어떻게 진행되는지 모르겠다"는 불확실성이 상담 이탈의 큰 이유이므로
+            차량을 본 직후에 배치했다.
+            스크롤 진입 시 단계별로 120ms 씩 시차를 두고 등장하며,
+            데스크톱은 화살표로 이어진 가로 5열 / 모바일은 점선으로 이어진 세로 1열이다. */}
+        <ProcessSection />
+
+        {/* ── 5. 자주 묻는 질문 (id="faq") ─────────────────────────────────────
+            한 번에 하나의 항목만 열리고, grid-template-rows 0fr↔1fr 트랜지션으로
+            높이가 부드럽게 늘어난다. 닫힌 패널은 키보드 탐색에서 제외된다.
+            상담 직전에 남은 반론을 해소하는 위치다. */}
+        <FaqSection />
+
+        {/* ── 6. 문의하기 (id="consult") ───────────────────────────────────────
+            구글폼 6번의 "문의하기" 에 해당하는 전환 지점.
+            좌측은 전체 항목을 받는 상담 폼(<ConsultForm variant="full" />),
+            우측은 전화 + 카카오톡·인스타그램·블로그 채널 CTA (구글폼 15번).
+            페이지 곳곳의 "상담받기" 버튼과 모바일 플로팅 바가 모두 여기로 스크롤된다. */}
+        <ConsultSection />
       </main>
-    </div>
+
+      {/* ── 푸터 (섹션 카운트에서 제외) ────────────────────────────────────────
+          구글폼 16번이 요청한 연락처·주소·사업자 정보가 들어가는 자리다.
+          <main> 바깥에 두어 "본문"과 "사이트 정보"를 의미적으로 분리한다.
+          모바일에서는 하단 고정 플로팅 바에 가리지 않도록 아래쪽 여백을 크게 준다. */}
+      <Footer />
+    </>
   );
 }
