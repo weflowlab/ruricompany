@@ -1,26 +1,265 @@
+/* =============================================================================
+ * globals.css — 프로젝트 전역 스타일 (Tailwind CSS v4)
+ *
+ * 역할
+ *  - Tailwind v4 를 `@import` 방식으로 로드하고, `@theme` 블록에 디자인 토큰을 등록한다.
+ *    (v4 부터는 tailwind.config.js 파일이 없고, CSS 안에서 토큰을 선언하면
+ *     `bg-primary` / `text-ink-sub` 같은 유틸리티 클래스가 자동 생성된다.)
+ *  - 한국어 본문에 맞는 기본 타이포그래피 / 줄바꿈 규칙을 잡는다.
+ *  - 마퀴(무한 흐름 배너)용 키프레임과 유틸 클래스를 정의한다.
+ *  - `prefers-reduced-motion` 사용자를 위해 모든 애니메이션을 정지시킨다.
+ * ========================================================================== */
+
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* -----------------------------------------------------------------------------
+ * 1) 디자인 토큰 — 색상
+ *
+ * `@theme` 에 선언한 `--color-*` 변수는 곧바로 Tailwind 색상 유틸리티가 된다.
+ *   --color-primary  →  bg-primary / text-primary / border-primary / ring-primary ...
+ *
+ * `inline` 키워드를 붙이지 않았으므로 유틸리티는 `var(--color-primary)` 를 참조한다.
+ * 덕분에 CSS 변수만 덮어써도 테마를 바꿀 수 있다.
+ * -------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------------
+ * ★ 컬러 전면 교체 (2026-07-31) — 네이버 그린 → 블루 + 딥 네이비
+ * ---------------------------------------------------------------------------
+ * 클라이언트 요청
+ *   - 블루 계열 (신뢰감) / 파스텔톤 (부드러움) / 신뢰감있는·전문적인
+ *   - 분위기 레퍼런스: teukjangman.kr — 어두운 바닥 위 밝은 스포트라이트
+ *
+ * 원본 레퍼런스는 흑백이지만 그대로 가져오면 "파스텔·부드러움" 요청과 어긋난다.
+ * 그래서 스포트라이트라는 **구조**만 빌리고 색은 블루 계열로 바꿨다.
+ *
+ * 핵심 판단 두 가지
+ *  1) 바닥은 순수 검정(#000)이 아니라 **딥 네이비**다.
+ *     검정 위에 파란 광원을 얹으면 색이 튀어 조잡해 보인다. 네이비면 스포트라이트가
+ *     같은 색조 안에서 번져 자연스럽다.
+ *  2) 다크 위에서는 primary(#2f6be4)를 그대로 쓰면 안 된다. 어두운 바닥에서
+ *     명도 대비가 부족해 글자가 가라앉는다. 그래서 한 단계 밝은
+ *     `primary-on-dark` 를 따로 뒀다. 다크 영역의 강조·링크는 이 토큰을 쓴다.
+ * ------------------------------------------------------------------------ */
+@theme {
+  /* 메인 브랜드 블루 — 밝은 배경 위 CTA 버튼, 강조 단어 */
+  --color-primary: #2f6be4;
+  /* 버튼 hover 시 한 톤 어두운 블루 */
+  --color-primary-hover: #2558c4;
+  /* 다크(네이비) 배경 위에서 쓰는 밝은 블루 — 명도 대비 확보용 */
+  --color-primary-on-dark: #6e9bff;
+  /* 아주 옅은 블루 — 뱃지·아이콘 원형처럼 중간 크기 면 */
+  --color-primary-soft: #eaf1fe;
+
+  /* ------------------------------------------------------------------------
+   * ★ 전면 다크 전환 (2026-07-31)
+   *
+   * 처음에는 "히어로만 다크 + 본문은 밝게" 하이브리드로 잡았는데,
+   * 실제로 보니 두 사이트를 이어 붙인 것처럼 보였다. 레퍼런스(teukjangman.kr)의
+   * 인상은 **화면 전체가 어둡고 그 위에 광원만 있는 것**에서 나온다.
+   *
+   * "파스텔톤(부드러움)" 요청은 배경색이 아니라 **광원과 포인트 색**으로 지킨다.
+   *   - 스포트라이트가 파스텔 블루(#a9c6ff)
+   *   - 다크 위 강조/링크가 밝은 블루(#6e9bff)
+   *   - 보조 글자도 회색이 아니라 **푸른기 도는 회색(#9fb0cc)**
+   * 채도 높은 원색을 쓰지 않으므로 어두워도 날 서 보이지 않는다.
+   *
+   * 명도 3단계로 위계를 만든다 (이게 없으면 전부 시커멓게 뭉친다)
+   *   navy       #0b1220  페이지 바닥 / 기본 섹션
+   *   navy-soft  #111b2f  번갈아 쓰는 섹션 띠
+   *   surface    #18243f  카드·입력창처럼 떠 있는 면
+   * ---------------------------------------------------------------------- */
+
+  /* 페이지 바닥 — body 배경이자 기본 섹션 배경 */
+  --color-navy: #0b1220;
+  /* 바닥보다 한 톤 밝은 섹션 띠 — 인접 섹션과 구분용 */
+  --color-navy-soft: #111b2f;
+  /* 스포트라이트 광원 색 (파스텔 블루). 알파는 사용처에서 조절한다 */
+  --color-spotlight: #a9c6ff;
+
+  /* 본문 글자색 — 다크 테마이므로 흰색이다.
+     (토큰 이름은 `ink` 그대로 둔다. 전 컴포넌트가 text-ink 를 참조하고 있어,
+      이름을 바꾸면 의미 없는 대량 수정이 발생한다) */
+  --color-ink: #ffffff;
+  /* 보조 글자색 — 순수 회색 대신 푸른기를 섞어 블루 톤 안에 머물게 한다 */
+  --color-ink-sub: #9fb0cc;
+
+  /* 구분선 — 다크 배경 위이므로 흰색 저알파 */
+  --color-line: rgba(255, 255, 255, 0.12);
+  /* line 과 같은 값. 다크 전환 이전에 쓰던 이름이라 호환용으로 남겨 둔다 */
+  --color-line-dark: rgba(255, 255, 255, 0.12);
+
+  /* 카드·입력창처럼 바닥에서 떠 있는 면 */
+  --color-surface: #18243f;
+
+  /* 경고·에러 강조 빨강 (폼 유효성 검사 문구) */
+  --color-accent: #e60023;
 }
 
+/* -----------------------------------------------------------------------------
+ * 1-1) 스포트라이트 배경 유틸
+ *
+ * teukjangman.kr 의 "어두운 바닥 + 위쪽에서 떨어지는 밝은 광원" 구조를
+ * 이미지 없이 radial-gradient 두 겹으로 만든다.
+ *
+ *   1겹 : 상단 중앙에서 넓게 퍼지는 주 광원 (파스텔 블루)
+ *   2겹 : 그보다 좁고 진한 코어 — 광원에 중심이 생겨 "조명"처럼 읽힌다
+ *
+ * 겹을 하나만 쓰면 그냥 뿌연 그라디언트로 보이고, 셋 이상은 탁해진다.
+ * 알파를 0.20 / 0.14 로 낮게 잡은 이유: 이 위에 흰 글자가 올라가므로
+ * 광원이 진하면 글자와 배경 대비가 무너진다.
+ * -------------------------------------------------------------------------- */
+.bg-spotlight {
+  background-color: var(--color-navy);
+  background-image:
+    radial-gradient(
+      ellipse 70% 55% at 50% -5%,
+      rgb(169 198 255 / 0.2) 0%,
+      rgb(169 198 255 / 0) 70%
+    ),
+    radial-gradient(
+      ellipse 38% 32% at 50% 0%,
+      rgb(169 198 255 / 0.14) 0%,
+      rgb(169 198 255 / 0) 65%
+    );
+}
+
+/* -----------------------------------------------------------------------------
+ * 2) 디자인 토큰 — 폰트
+ *
+ * layout.tsx 가 next/font 로 주입하는 `--font-geist-sans` / `--font-geist-mono`
+ * 변수를 아직 참조하고 있으므로, 그 값을 그대로 넘겨받도록 남겨 둔다.
+ * (create-next-app 잔재인 --background / --foreground 는 제거했다.)
+ *
+ * 여기서는 `@theme inline` 을 쓴다. 다른 CSS 변수를 값으로 참조할 때는
+ * inline 이어야 유틸리티가 변수를 한 번 더 감싸지 않고 바로 풀어서 쓴다.
+ * 한글 폰트가 없는 환경을 대비해 시스템 한글 폰트를 폴백으로 나열한다.
+ * -------------------------------------------------------------------------- */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-geist-sans), "Pretendard", "Apple SD Gothic Neo",
+    "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo,
+    monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* -----------------------------------------------------------------------------
+ * 3) 문서 기본값
+ * -------------------------------------------------------------------------- */
+
+html {
+  /* GNB 앵커 링크(#reviews, #vehicles ...) 클릭 시 부드럽게 스크롤 */
+  scroll-behavior: smooth;
+  /* 상단 고정 헤더(높이 80px)에 섹션 제목이 가려지지 않도록 스크롤 정지 위치를 보정 */
+  scroll-padding-top: 80px;
+  /* 모바일 사파리에서 글자 크기가 임의로 확대되는 것을 방지 */
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* 전면 다크(2026-07-31). 섹션이 배경을 지정하지 않은 틈에서도
+     흰 바닥이 새어 나오지 않도록 body 부터 네이비로 깐다. */
+  background-color: var(--color-navy);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  /* 한글 본문은 어절 중간에서 끊기면 가독성이 떨어지므로 어절 단위로만 줄바꿈 */
+  word-break: keep-all;
+  /* keep-all 로 인해 긴 URL/영문이 박스를 넘칠 수 있으니 최후의 수단으로 줄바꿈 허용 */
+  overflow-wrap: break-word;
+  line-height: 1.6;
+}
+
+/* 제목류는 본문보다 촘촘한 행간이 어울린다 */
+h1,
+h2,
+h3,
+h4 {
+  line-height: 1.3;
+  word-break: keep-all;
+}
+
+/* 폼 요소가 브라우저 기본 폰트로 되돌아가는 것을 방지 */
+input,
+textarea,
+select,
+button {
+  font-family: inherit;
+}
+
+/* 키보드 사용자에게만 포커스 링을 보여 준다 (마우스 클릭 시에는 표시하지 않음) */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* -----------------------------------------------------------------------------
+ * 4) 마퀴(무한 흐름) 애니메이션
+ *
+ * 사용 패턴: 트랙 안에 동일한 카드 그룹을 "두 벌" 렌더링한 뒤
+ * 트랙 전체를 -50% 만큼 밀면, 두 번째 벌이 첫 번째 벌 자리에 정확히 도달하면서
+ * 끊김 없이 무한 반복되는 것처럼 보인다. (후기 마퀴 / 제휴사 로고 마퀴 공용)
+ * -------------------------------------------------------------------------- */
+
+/* 왼쪽으로 흐르는 마퀴 — 0% 지점에서 원위치, 100% 지점에서 트랙 절반만큼 이동 */
+@keyframes marquee-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/*
+ * .animate-marquee — 마퀴 트랙에 붙이는 유틸 클래스.
+ * 재생 속도는 인라인 style 로 `--marquee-duration` 변수를 넘겨 제어한다.
+ *   예) <div className="animate-marquee" style={{ '--marquee-duration': '40s' }}>
+ * 변수를 넘기지 않으면 기본 30초로 동작한다.
+ */
+.animate-marquee {
+  display: flex;
+  /* 자식 카드 개수만큼 가로로 늘어나야 하므로 내용 크기에 맞춘다 */
+  width: max-content;
+  /* linear 이어야 속도가 일정해 이음새가 티나지 않는다 */
+  animation: marquee-left var(--marquee-duration, 30s) linear infinite;
+  /* 애니메이션 중 텍스트가 흐릿해지지 않도록 GPU 레이어로 승격 */
+  will-change: transform;
+}
+
+/*
+ * 마퀴 일시정지 방법 두 가지
+ *  (1) 부모에 .marquee-hover-pause 를 달면 마우스를 올리거나
+ *      내부 요소가 키보드 포커스를 받는 동안 정지
+ *  (2) 트랙 자체에 data-paused="true" 를 주면 JS 로 정지 (모달 열림 등)
+ */
+.marquee-hover-pause:hover .animate-marquee,
+.marquee-hover-pause:focus-within .animate-marquee,
+.animate-marquee[data-paused="true"] {
+  animation-play-state: paused;
+}
+
+/* -----------------------------------------------------------------------------
+ * 5) 접근성 — 모션 최소화 설정 존중
+ *
+ * OS 에서 "동작 줄이기"를 켠 사용자에게는 자동 재생 애니메이션이 어지럼증을 유발한다.
+ * 모든 애니메이션/트랜지션을 사실상 0 으로 만들고, 부드러운 스크롤도 끈다.
+ * -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* 마퀴는 이동하지 않은 원위치(첫 번째 그룹)에서 정지시킨다 */
+  .animate-marquee {
+    animation: none !important;
+    transform: none !important;
+  }
 }
