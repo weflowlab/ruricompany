@@ -70,8 +70,16 @@ type VehicleSectionProps = {
   description?: string;
   /** 그리드에 렌더링할 차량 목록 (현재 구성은 8대) */
   vehicles: Vehicle[];
-  /** true 면 섹션 배경을 연블루그레이(bg-surface)로 깔아 위아래 섹션과 구분한다 */
+  /** true 면 섹션 배경을 한 톤 밝은 네이비(bg-navy-soft)로 깔아 위아래 섹션과 구분한다 */
   surface?: boolean;
+  /**
+   * true 면 모바일에서 카드를 2열 그리드 대신 **가로 한 줄 스크롤**로 깐다 (2026-07-31).
+   *
+   * 모바일 2열 그리드는 4대가 2행으로 쌓여 세로로 길어진다. 한 줄로 흘리면
+   * 화면을 덜 잡아먹고 "옆으로 더 있다"는 신호도 준다.
+   * md 이상에서는 어차피 그리드가 한 행에 다 들어가므로 이 옵션은 무시된다.
+   */
+  mobileRow?: boolean;
 };
 
 /** 카드 간 순차 등장 간격(ms). index 에 곱해 각 카드의 transitionDelay 로 사용한다 */
@@ -84,6 +92,7 @@ export default function VehicleSection({
   description,
   vehicles,
   surface = false,
+  mobileRow = false,
 }: VehicleSectionProps) {
   /*
     그리드 컨테이너를 관찰 대상으로 삼는다.
@@ -112,7 +121,7 @@ export default function VehicleSection({
         // 섹션 상하 패딩: 모바일 60px / 데스크톱 100px
         'py-15 md:py-25',
         // surface 가 true 일 때만 연회색 배경. 아니면 부모(흰색) 배경을 그대로 쓴다
-        surface ? 'bg-surface' : '',
+        surface ? 'bg-navy-soft' : '',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -135,7 +144,20 @@ export default function VehicleSection({
         */}
         <ul
           ref={gridRef}
-          className="grid grid-cols-2 items-stretch gap-5 md:grid-cols-3 md:gap-6 lg:grid-cols-4"
+          className={[
+            'items-stretch gap-5 md:gap-6',
+            mobileRow
+              ? /* 모바일: 가로 한 줄 스크롤.
+                   - snap-x + snap-start 로 카드가 스크롤 끝에서 반듯하게 멈춘다.
+                   - -mx-5 px-5 : 컨테이너 좌우 여백(20px)을 상쇄해 카드가 화면 끝까지
+                     흘러 나가게 하고, 첫/마지막 카드 앞뒤 여백은 padding 으로 되살린다.
+                     이렇게 해야 "잘려 나간 카드"가 보여 스크롤 가능함이 드러난다.
+                   - [&>li]:w-[70%] : 한 화면에 1.4장쯤 보이는 폭. 딱 1장만 보이면
+                     옆에 더 있다는 신호가 사라진다.
+                   - md 부터는 스크롤을 끄고(overflow-visible) 평범한 그리드로 되돌린다. */
+                'flex snap-x snap-mandatory overflow-x-auto -mx-5 px-5 pb-2 [&>li]:w-[70%] [&>li]:shrink-0 [&>li]:snap-start md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0 md:pb-0 md:[&>li]:w-auto lg:grid-cols-4'
+              : 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
+          ].join(' ')}
         >
           {vehicles.map((vehicle, index) => (
             <li

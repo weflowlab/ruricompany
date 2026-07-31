@@ -62,11 +62,23 @@ export default function TextBanner() {
        * relative + overflow-hidden: 아래 사선 패턴 레이어를 안쪽에 가둬 둔다.
        * 세로 패딩은 모바일 40px(py-10) / 데스크톱 64px(py-16).
        */
-      className="relative overflow-hidden bg-primary py-10 md:py-16"
+      /*
+       * ★ 다크 + 스포트라이트 (2026-07-31)
+       *   원래는 primary 단색 띠였다. 히어로만 다크로 두면 그 화면이 "튄 것"처럼
+       *   보이므로, 페이지 중간의 이 배너를 같은 .bg-spotlight 로 맞춰
+       *   다크가 우연이 아니라 의도된 리듬임을 드러낸다.
+       *   (히어로 → 밝은 본문 → 이 배너 → 밝은 본문 → 다크 푸터)
+       *
+       * relative + overflow-hidden: 아래 사선 패턴 레이어를 안쪽에 가둬 둔다.
+       * 세로 패딩은 모바일 40px(py-10) / 데스크톱 64px(py-16).
+       */
+      className="bg-spotlight relative overflow-hidden py-10 md:py-16"
     >
       {/*
         배경 사선 패턴 레이어.
-        - 흰색 아주 옅은(6%) 줄무늬를 135도 방향으로 반복해 밋밋한 단색을 살짝 깨 준다.
+        - 흰색 아주 옅은 줄무늬를 135도 방향으로 반복해 밋밋한 면을 살짝 깨 준다.
+        - 다크 배경으로 바뀌면서 알파를 0.10 → 0.05 로 낮췄다. 어두운 바닥 위에서는
+          같은 알파라도 줄무늬가 훨씬 도드라져 지저분해 보인다.
         - 순수 장식이므로 aria-hidden 처리하고 클릭도 막는다(pointer-events-none).
       */}
       <div
@@ -74,7 +86,7 @@ export default function TextBanner() {
         className="pointer-events-none absolute inset-0"
         style={{
           backgroundImage:
-            "repeating-linear-gradient(135deg, rgba(255,255,255,0.10) 0px, rgba(255,255,255,0.10) 2px, transparent 2px, transparent 14px)",
+            "repeating-linear-gradient(135deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 2px, transparent 2px, transparent 14px)",
         }}
       />
 

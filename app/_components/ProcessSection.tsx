@@ -31,6 +31,8 @@
  *    시차 없이 즉시 최종 상태로 표시된다.
  */
 
+import Image from "next/image";
+
 import Placeholder from "@/app/_components/Placeholder";
 import SectionTitle from "@/app/_components/SectionTitle";
 import { processSteps } from "@/app/_data/process";
@@ -89,7 +91,7 @@ export default function ProcessSection() {
       */}
       <div
         aria-hidden="true"
-        className="bg-surface/90 pointer-events-none absolute inset-0"
+        className="bg-navy/85 pointer-events-none absolute inset-0"
       />
 
       {/* ── 실제 콘텐츠 (배경 레이어보다 위) ─────────────────────────────────── */}
@@ -173,31 +175,52 @@ export default function ProcessSection() {
                   {/* ── 스텝 카드 본체 (hover 떠오름 담당) ─────────────────── */}
                   <article
                     className={[
-                      "group flex w-full flex-col items-center rounded-2xl border border-line bg-white/80 px-5 py-7 text-center backdrop-blur-sm",
+                      "group flex w-full flex-col items-center rounded-2xl border border-line bg-surface/85 px-5 py-7 text-center backdrop-blur-sm",
                       "shadow-[0_2px_10px_rgba(0,0,0,0.04)]",
                       // 지연 없이 즉각 반응하는 hover 전환
                       "transition-[transform,box-shadow] duration-300 ease-out",
                       "hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(0,0,0,0.10)]",
                     ].join(" ")}
                   >
-                    {/* ── 단계 이미지 자리 (2026-07-31 추가) ──────────────────
-                        각 단계에 실제 사진을 넣기로 해서 자리를 먼저 잡았다.
+                    {/* ── 단계 이미지 (2026-07-31 실사진 적용) ────────────────
                         원형 번호 배지는 이미지 위 좌상단에 겹쳐 둔다 — 이미지와 배지를
                         위아래로 따로 쌓으면 카드가 세로로 길어져, 데스크톱에서 5칸이
                         나란히 놓였을 때 섹션 전체가 지나치게 높아진다.
+
                         비율은 4/3 고정. 5장이 같은 비율이어야 한 줄로 늘어섰을 때
-                        아래 텍스트 시작 위치가 서로 어긋나지 않는다. */}
+                        아래 텍스트 시작 위치가 서로 어긋나지 않는다.
+                        원본 사진은 전부 16/9 가로형이라 그대로 넣으면 칸에 안 맞는다.
+                        그래서 4/3 상자를 만들고 <Image fill /> + object-cover 로
+                        가운데를 채워 자른다(비율이 다른 사진이 와도 카드가 안 깨진다).
+
+                        ★ 래퍼가 2겹인 이유
+                          바깥 div 에는 overflow-hidden 을 주면 안 된다. 좌상단 번호
+                          배지가 음수 offset(-top-2 -left-2)으로 상자 밖에 걸쳐 있어
+                          바깥에서 자르면 배지의 모서리가 잘려 나간다.
+                          그래서 "자르는 상자"(안쪽)와 "배지 기준점"(바깥)을 분리했다. */}
                     <div className="relative w-full">
-                      <Placeholder
-                        label={item.imageLabel}
-                        ratio="4/3"
-                        rounded
-                      />
+                      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-surface">
+                        <Image
+                          src={item.image}
+                          alt={item.imageAlt}
+                          fill
+                          /*
+                           * sizes — 브라우저가 srcset 에서 고를 기준.
+                           * 데스크톱(1024px~)에서는 목록 폭 1480px 을 5칸으로 나눠
+                           * 카드 한 장이 최대 260px 남짓이라 300px 로 잡아 두면 충분하다.
+                           * 그 미만에서는 카드가 화면 폭을 거의 다 쓰므로 100vw.
+                           * 이 값이 없으면 원본 4MB PNG 에 가까운 크기를 받아 온다.
+                           */
+                          sizes="(min-width: 1024px) 300px, 100vw"
+                          className="object-cover"
+                        />
+                      </div>
 
                       {/*
                         원형 번호 배지 — primary 배경 + 흰 숫자.
                         이미지 좌상단에 살짝 걸치도록 음수 offset 을 준다.
-                        (article 에 overflow-hidden 이 없어 잘리지 않는다)
+                        기준점은 바로 위 "자르는 상자"가 아니라 그 바깥 래퍼다 —
+                        article 과 바깥 래퍼 모두 overflow-hidden 이 없어 잘리지 않는다.
                       */}
                       <span
                         aria-hidden="true"

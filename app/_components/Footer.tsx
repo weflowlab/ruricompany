@@ -15,24 +15,31 @@
  *   4) 카피라이트   — 가장 흐린 회색
  *
  * 바뀐 점과 이유
- *  - 배경: 다크(#111) → 흰색 + 상단 1px 라인.
- *    바로 위 FAQ 섹션이 흰 배경이라 검은 덩어리가 갑자기 나타나면 페이지가 끊겨 보였다.
- *    라인 하나로만 구분하면 본문에서 사이트 정보로 자연스럽게 이어진다.
  *  - 대표번호를 우측 상단으로 끌어올렸다. 푸터까지 스크롤한 사용자는 이미
  *    "연락할 마음"이 있는 상태이므로, 전화번호가 가장 먼저 눈에 닿아야 한다.
- *  - 약관 2종은 여전히 아코디언이지만 위치를 상단 좌측으로 옮겼다.
- *    (원본이 링크 형태라 자리만 맞추고, 동작은 페이지 이동 없는 아코디언을 유지했다.
- *     별도 약관 페이지가 아직 없어 링크로 만들면 갈 곳이 없기 때문이다.)
+ *  - 약관 2종을 상단 좌측으로 옮기고, 클릭하면 그 자리에 팝오버가 뜬다.
+ *    (원본이 링크 형태라 자리만 맞췄다. 별도 약관 페이지가 아직 없어
+ *     링크로 만들면 갈 곳이 없기 때문에 페이지 이동은 하지 않는다.)
+ *
+ * ============================================================================
+ * ★ 다크 전환 (2026-07-31)
+ * ============================================================================
+ * 흰 배경으로 만들었다가 딥 네이비(bg-navy)로 다시 뒤집었다.
+ *
+ * 처음 흰색으로 잡은 근거는 "위 FAQ 가 흰 배경이라 검은 덩어리가 갑자기 나오면
+ * 페이지가 끊겨 보인다"였다. 그 근거는 히어로가 밝을 때만 성립한다.
+ * 지금은 히어로가 다크 + 스포트라이트라, 푸터도 다크여야 위아래가 짝을 이룬다.
+ * 페이지가 [다크 → 밝은 본문 → 다크]로 닫히면서 다크가 의도된 리듬으로 읽힌다.
+ *
+ * 다만 약관 팝오버는 흰색 그대로 뒀다. 떠 있는 창은 배경에서 떨어져 보여야
+ * 하는데, 네이비 위에 네이비 창을 얹으면 경계가 사라진다.
  *
  * 인터랙션
- *  - 아코디언 토글 때문에 클라이언트 컴포넌트('use client')다.
- *  - 두 아코디언은 서로 독립적으로 열고 닫힌다(동시에 둘 다 열려도 됨).
- *  - 열림/닫힘은 `grid-template-rows: 0fr → 1fr` 트릭으로 높이를 애니메이션한다.
- *    (max-height 를 임의값으로 추정하지 않아도 되어 내용 길이에 안전하다.)
- *  - 버튼에 aria-expanded / aria-controls, 패널에 id 와 role="region" 을 붙여
- *    스크린리더가 펼침 상태를 인지할 수 있게 했다.
- *  - `prefers-reduced-motion: reduce` 는 globals.css 전역 미디어쿼리가
- *    transition-duration 을 0 으로 만들어 즉시 열리고 닫힌다.
+ *  - 팝오버 토글 때문에 클라이언트 컴포넌트('use client')다.
+ *  - 한 번에 하나만 열린다 (떠 있는 창 둘이 겹치면 읽기 어렵다).
+ *  - 닫는 방법 3가지: 우상단 × / 바깥 클릭 / Esc.
+ *  - 버튼에 aria-expanded / aria-controls, 팝오버에 role="dialog" 를 붙여
+ *    스크린리더가 열림 상태를 인지할 수 있게 했다.
  *
  * 레이아웃 주의
  *  - 모바일에서는 화면 하단에 FloatingCta(고정 바)가 떠 있으므로,
@@ -82,6 +89,124 @@ const policies: PolicyItem[] = [
       "이를 위반할 경우 관련 법령에 따라 형사 처벌될 수 있습니다.",
       "※ 본 문구는 레이아웃 확인을 위한 예시 텍스트입니다.",
     ],
+  },
+];
+
+/**
+ * 푸터 채널 버튼 한 항목.
+ * 아이콘은 외부 라이브러리 없이 인라인 SVG 로 직접 그린다.
+ * 각 서비스의 실제 로고 아트워크가 아니라, 성격을 알아볼 수 있는 일반 도형이다.
+ */
+type Channel = {
+  /** React key */
+  id: string;
+  /** aria-label / title 에 쓰는 한국어 이름 */
+  label: string;
+  /** 이동할 주소 */
+  href: string;
+  /** 외부 사이트인지 여부 — true 면 새 탭에서 연다 */
+  external: boolean;
+  /**
+   * 채널 브랜드 색 클래스 (2026-07-31 변경).
+   * 이전에는 hover 에서만 색이 켜졌는데, 이제 아이콘 선과 바깥 원 테두리에
+   * 상시로 브랜드 색을 입힌다. hover 에서는 그 색으로 면을 채운다.
+   */
+  colorClass: string;
+  /** 버튼 안에 들어갈 아이콘 */
+  icon: React.ReactNode;
+};
+
+/**
+ * 채널 목록 (2026-07-31 추가).
+ *
+ * ⚠️ 카카오톡 링크는 카카오 오픈채팅 **소개 페이지**다.
+ *    루리컴퍼니의 실제 오픈채팅방 주소를 아직 전달받지 못해 임시로 넣어 두었다.
+ *    인스타그램·블로그도 각 서비스 홈이며 브랜드 계정 주소가 아니다.
+ *    실제 계정 주소를 받으면 이 배열의 href 3개만 교체하면 된다.
+ */
+const channels: Channel[] = [
+  {
+    id: 'phone',
+    label: `전화 상담 ${site.tel}`,
+    href: `tel:${site.tel}`,
+    external: false,
+    colorClass: 'border-primary text-primary hover:bg-primary hover:text-white',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path
+          d="M4.5 2.5h3l1.5 3.75-1.9 1.15a11 11 0 0 0 4.5 4.5l1.15-1.9L16.5 11.5v3a2 2 0 0 1-2.2 2A14.5 14.5 0 0 1 3 4.7a2 2 0 0 1 1.5-2.2Z"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    id: 'kakao',
+    label: '카카오톡 오픈채팅',
+    href: 'https://www.kakaocorp.com/page/service/service/openchat',
+    external: true,
+    /* 채워졌을 때(hover) 노란 면 위에서는 흰 아이콘이 묻히므로 갈색으로 뒤집는다 */
+    colorClass:
+      'border-[#FEE500] text-[#FEE500] hover:bg-[#FEE500] hover:text-[#3C1E1E]',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        <path
+          d="M10 3c4 0 7 2.4 7 5.4 0 3-3 5.4-7 5.4-.6 0-1.2-.05-1.75-.15L4.7 16.2l.85-2.85C4 12.4 3 10.6 3 8.4 3 5.4 6 3 10 3Z"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    id: 'instagram',
+    label: '인스타그램',
+    href: 'https://www.instagram.com/',
+    external: true,
+    colorClass: 'border-[#E1306C] text-[#E1306C] hover:bg-[#E1306C] hover:text-white',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        {/* 둥근 사각 테두리 + 가운데 원 + 우상단 점 — 카메라를 뜻하는 일반 도형 */}
+        <rect
+          x="3"
+          y="3"
+          width="14"
+          height="14"
+          rx="4.5"
+          stroke="currentColor"
+          strokeWidth="1.6"
+        />
+        <circle cx="10" cy="10" r="3.2" stroke="currentColor" strokeWidth="1.6" />
+        <circle cx="14.2" cy="5.8" r="1" fill="currentColor" />
+      </svg>
+    ),
+  },
+  {
+    id: 'blog',
+    label: '블로그',
+    href: 'https://section.blog.naver.com/BlogHome.naver?directoryNo=0&currentPage=1&groupId=0',
+    external: true,
+    colorClass: 'border-[#03C75A] text-[#03C75A] hover:bg-[#03C75A] hover:text-white',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+        {/* 글이 적힌 문서 — 블로그(글) 를 뜻하는 일반 도형 */}
+        <path
+          d="M4.5 3.5h11v13h-11z"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M7.2 7h5.6M7.2 10h5.6M7.2 13h3.4"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+        />
+      </svg>
+    ),
   },
 ];
 
@@ -156,16 +281,16 @@ export default function Footer() {
   return (
     <footer
       /*
-       * 흰 배경 + 상단 1px 라인. 모바일에서는 하단 플로팅 CTA 바에 가려지지 않도록
-       * pb-24 로 여유를 두고, md 이상에서는 pb-16 으로 되돌린다.
+       * 딥 네이비 + 상단 1px 라인(흰색 저알파). 모바일에서는 하단 플로팅 CTA 바에
+       * 가려지지 않도록 pb-24 로 여유를 두고, md 이상에서는 pb-16 으로 되돌린다.
        */
-      className="border-line text-ink border-t bg-white pt-12 pb-24 md:pt-16 md:pb-16"
+      className="bg-navy border-line-dark border-t pt-12 pb-24 text-white md:pt-16 md:pb-16"
     >
       <div className="mx-auto w-full max-w-[1320px] px-5">
-        {/* ── 1. 상단 줄: 좌 약관 토글 / 우 대표번호 ───────────────────────
-            모바일에서는 세로로 쌓이고(약관 → 대표번호),
-            md 이상에서는 양 끝으로 벌어진다. */}
-        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+        {/* ── 1. 상단 줄: 약관 토글 2개 ─────────────────────────────────
+            2026-07-31 대표번호·채널 버튼을 이 줄에서 빼서 아래 헤드라인 옆으로
+            옮겼다. 헤드라인과 가로 라인을 맞춰 달라는 요청. */}
+        <div className="flex flex-col gap-6">
           {/* ── 약관 토글 버튼 2개 + 각자의 팝오버 ──────────────────────────
               래퍼에 ref 를 걸어 "이 영역 바깥을 누르면 닫기" 판정 범위로 쓴다. */}
           <div
@@ -185,7 +310,10 @@ export default function Footer() {
                     /* 팝오버와 연결 + 현재 열림 상태를 보조기기에 전달 */
                     aria-expanded={isOpen}
                     aria-controls={`footer-policy-${policy.id}`}
-                    className="text-ink hover:text-primary flex cursor-pointer items-center gap-1.5 text-sm font-bold transition-colors md:text-[0.95rem]"
+                    /* 2026-07-31 글씨 축소: text-sm/0.95rem → text-xs/0.8rem.
+                       푸터 최상단의 보조 링크라 헤드라인·대표번호보다 확실히 작아야 한다.
+                       흰색 대신 ink-sub 로 낮춰 위계도 함께 내렸다. */
+                    className="text-ink-sub hover:text-primary-on-dark flex cursor-pointer items-center gap-1 text-xs font-bold transition-colors md:text-[0.8rem]"
                   >
                     {policy.title}
 
@@ -199,7 +327,7 @@ export default function Footer() {
                       strokeWidth={2.5}
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className={`h-3.5 w-3.5 shrink-0 transition-transform duration-300 ${
+                      className={`h-3 w-3 shrink-0 transition-transform duration-300 ${
                         isOpen ? "rotate-180" : "rotate-0"
                       }`}
                     >
@@ -227,7 +355,7 @@ export default function Footer() {
                       id={`footer-policy-${policy.id}`}
                       role="dialog"
                       aria-label={`${policy.title} 내용`}
-                      className="border-line absolute top-full left-0 z-30 mt-2 w-[min(26rem,calc(100vw-3rem))] rounded-xl border bg-white shadow-[0_8px_28px_rgba(0,0,0,0.16)]"
+                      className="border-line absolute top-full left-0 z-30 mt-2 w-[min(26rem,calc(100vw-3rem))] rounded-xl border bg-surface shadow-[0_8px_28px_rgba(0,0,0,0.45)]"
                     >
                       {/* 팝오버 헤더 — 제목 + 닫기 버튼 */}
                       <div className="border-line flex items-center justify-between gap-3 border-b px-4 py-2.5">
@@ -269,37 +397,86 @@ export default function Footer() {
             })}
           </div>
 
-          {/*
-            대표번호 — 푸터에서 가장 강한 신호.
-            라벨은 잉크색 굵게, 번호는 primary 로 크게 띄운다.
-            tel: 링크로 감싸 모바일에서 바로 통화로 이어지게 한다.
-          */}
-          <p className="flex items-baseline gap-2.5">
-            <span className="text-ink text-base font-extrabold md:text-lg">
-              대표번호
-            </span>
-            <a
-              href={`tel:${site.tel}`}
-              aria-label={`${site.name} 대표번호 ${site.tel} 로 연결`}
-              className="text-primary hover:text-primary-hover text-xl font-extrabold tracking-tight transition-colors md:text-2xl"
-            >
-              {site.tel}
-            </a>
-          </p>
         </div>
 
         {/* 약관 본문은 위 버튼에 붙은 팝오버 안으로 들어갔다.
             여기 있던 아코디언 패널 블록은 2026-07-31 제거. */}
 
-        {/* ── 2. 대형 헤드라인 (2줄) ─────────────────────────────────────
-            배열 한 칸 = 한 줄. block span 으로 쌓아 <br> 없이 줄을 나눈다. */}
-        <p className="mt-12 text-[1.6rem] leading-[1.35] font-extrabold tracking-tight md:mt-16 md:text-[2.4rem]">
-          {site.footerHeadline.map((line) => (
-            <span key={line} className="block">
-              {line}
+        {/* ── 2. 대형 헤드라인 (좌) + 대표번호·채널 (우) ───────────────────
+            2026-07-31 두 블록을 한 행으로 묶었다.
+            md:items-end 로 아래쪽 기준선을 맞춰, 헤드라인 마지막 줄과
+            채널 버튼 줄이 같은 라인에 놓이게 한다. */}
+        <div className="mt-6 flex flex-col gap-8 md:mt-8 md:flex-row md:items-end md:justify-between md:gap-10">
+          {/* 배열 한 칸 = 한 줄. block span 으로 쌓아 <br> 없이 줄을 나눈다. */}
+          <p className="text-[1.6rem] leading-[1.35] font-extrabold tracking-tight md:text-[2.4rem]">
+            {site.footerHeadline.map((line) => (
+              <span key={line} className="block">
+                {line}
+              </span>
+            ))}
+          </p>
+
+          {/* 대표번호 + 그 아래 채널 버튼 줄.
+            md 이상에서는 오른쪽 끝으로 정렬해 좌측 약관과 양 끝에 놓이게 한다. */}
+        <div className="flex flex-col gap-3 md:items-end">
+          {/*
+            대표번호 — 푸터에서 가장 강한 신호.
+            라벨은 흰 글자 굵게, 번호는 다크용 밝은 블루로 크게 띄운다.
+            tel: 링크로 감싸 모바일에서 바로 통화로 이어지게 한다.
+          */}
+          <p className="flex items-baseline gap-2.5">
+            <span className="text-base font-extrabold text-white md:text-lg">
+              대표번호
             </span>
-          ))}
-        </p>
+            <a
+              href={`tel:${site.tel}`}
+              aria-label={`${site.name} 대표번호 ${site.tel} 로 연결`}
+              className="text-primary-on-dark text-xl font-extrabold tracking-tight transition-colors hover:text-white md:text-2xl"
+            >
+              {site.tel}
+            </a>
+          </p>
+
+          {/* ── 채널 버튼 4개 (2026-07-31 추가) ──────────────────────────
+              전화 / 카카오톡 / 인스타그램 / 블로그.
+
+              모두 같은 크기의 원형 버튼으로 통일했다. 채널마다 다른 모양을 주면
+              "무엇이 더 중요한가" 하는 없는 위계가 생긴다. 중요도 차이는
+              바로 위 대표번호가 이미 표현하고 있다.
+
+              아이콘 선과 바깥 원 테두리에 각 채널의 브랜드 색을 상시로 입혔다.
+              면(배경)까지 브랜드 색으로 채우면 원색 원 4개가 나란히 켜져 다크 톤이
+              깨지므로, 채우기는 hover 에서만 일어난다.
+
+              외부 링크는 target="_blank" 로 새 탭에서 열고,
+              rel="noopener noreferrer" 로 원본 탭 접근(window.opener)을 차단한다. */}
+          <ul className="flex items-center gap-2.5">
+            {channels.map((channel) => (
+              <li key={channel.id}>
+                <a
+                  href={channel.href}
+                  aria-label={channel.label}
+                  title={channel.label}
+                  /* tel: 은 같은 탭에서 열려야 통화 앱으로 넘어간다.
+                     외부 채널만 새 탭 처리한다. */
+                  {...(channel.external
+                    ? { target: '_blank', rel: 'noopener noreferrer' }
+                    : {})}
+                  className={[
+                    /* 테두리·아이콘 색은 channel.colorClass 가 지정한다.
+                       면은 평소 거의 투명하고 hover 에서만 브랜드 색으로 찬다. */
+                    'flex h-13 w-13 items-center justify-center rounded-full border bg-white/5',
+                    'transition-colors duration-200',
+                    channel.colorClass,
+                  ].join(' ')}
+                >
+                  {channel.icon}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+        </div>
 
         {/* ── 3. 사업자 정보 2줄 ─────────────────────────────────────────
             dl/dt/dd 로 "라벨 - 값" 관계를 보조기기에 전달한다.
@@ -314,7 +491,7 @@ export default function Footer() {
             {businessRows.map((row, rowIndex) => (
               <dl
                 key={rowIndex}
-                className="text-ink-sub flex flex-col gap-y-1 text-[0.8rem] leading-relaxed md:flex-row md:flex-wrap md:gap-x-6 md:text-sm"
+                className="flex flex-col gap-y-1 text-[0.8rem] leading-relaxed text-white/55 md:flex-row md:flex-wrap md:gap-x-6 md:text-sm"
               >
                 {row.map((item) => (
                   // dt/dd 한 쌍을 div 로 묶는다 (HTML5 에서 허용되는 패턴)
@@ -331,15 +508,10 @@ export default function Footer() {
         {/* ── 4. 카피라이트 + 데모 고지 ──────────────────────────────────
             푸터에서 가장 흐린 톤. 정보 위계상 마지막이다. */}
         <div className="mt-8 md:mt-10">
-          <p className="text-ink-sub/70 text-[0.8rem] md:text-sm">
+          <p className="text-[0.8rem] text-white/40 md:text-sm">
             Copyright ⓒ {COPYRIGHT_YEAR} {site.name}. All rights reserved.
           </p>
-          {/* 참고 제작임을 명확히 밝히는 고지 문구 (필수) */}
-          <p className="text-ink-sub/60 mt-2 text-[0.75rem] leading-relaxed md:text-xs">
-            본 페이지는 truck-1st.com의 레이아웃/인터랙션을 참고해 제작된
-            데모입니다. 게시된 브랜드명, 차량 정보, 사업자 정보는 모두 예시용
-            더미 데이터이며 실제와 무관합니다.
-          </p>
+          
         </div>
       </div>
     </footer>

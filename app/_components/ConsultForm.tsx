@@ -396,8 +396,8 @@ export default function ConsultForm({
   /** 입력창 공통 클래스. 에러가 있으면 테두리를 accent 색으로 바꾼다 */
   const inputClass = (hasError: boolean) =>
     [
-      'w-full rounded-lg border bg-white text-ink outline-none transition-colors',
-      'placeholder:text-black/35',
+      'w-full rounded-lg border bg-white/5 text-ink outline-none transition-colors',
+      'placeholder:text-white/35',
       /* compact 입력창 높이를 py-2.5(10px) → py-3(12px) 로 키웠다 (2026-07-31).
          간격만 넓히고 입력창이 얇게 남으면 오히려 위아래가 헐거워 보인다. */
       isCompact ? 'px-3.5 py-3 text-sm' : 'px-4 py-3 text-[0.95rem]',
@@ -446,7 +446,7 @@ export default function ConsultForm({
         <button
           type="button"
           onClick={handleReset}
-          className="mt-2 rounded-lg border border-line bg-white px-4 py-2 text-sm font-semibold text-ink transition-colors hover:border-primary hover:text-primary"
+          className="mt-2 rounded-lg border border-line bg-white/5 px-4 py-2 text-sm font-semibold text-ink transition-colors hover:border-primary hover:text-primary-on-dark"
         >
           다시 신청하기
         </button>
@@ -686,7 +686,7 @@ export default function ConsultForm({
                     // 선택됨 : primary 배경 + 흰 글씨 / 선택 안 됨 : 흰 배경 + 회색 글씨
                     checked
                       ? 'border-primary bg-primary text-white'
-                      : 'border-line bg-white text-ink-sub hover:border-primary hover:text-primary',
+                      : 'border-line bg-white/5 text-ink-sub hover:border-primary hover:text-primary-on-dark',
                     // 키보드 포커스 링 — 마우스 클릭 시에는 뜨지 않는다
                     'peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary',
                   ].join(' ')}
@@ -760,7 +760,7 @@ export default function ConsultForm({
               id={id('terms')}
               role="dialog"
               aria-label="개인정보 수집·이용 동의 전문"
-              className="absolute bottom-full left-0 z-20 mb-2 w-[min(22rem,calc(100vw-3rem))] rounded-xl border border-line bg-white shadow-[0_8px_28px_rgba(0,0,0,0.16)]"
+              className="absolute bottom-full left-0 z-20 mb-2 w-[min(22rem,calc(100vw-3rem))] rounded-xl border border-line bg-surface shadow-[0_8px_28px_rgba(0,0,0,0.45)]"
             >
               {/* 팝오버 헤더 — 제목 + 닫기 버튼 */}
               <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">

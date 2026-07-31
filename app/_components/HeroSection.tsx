@@ -256,8 +256,25 @@ export default function HeroSection() {
      * 고정 헤더 높이(80px)만큼 pt-20 으로 밀어 준다.
      * 헤더가 fixed 라 이 패딩이 없으면 첫 슬라이드가 헤더 뒤로 들어간다.
      */
-    <section id="hero" className="pt-20" aria-label="메인 배너 및 빠른 견적 문의">
-      <div className="mx-auto w-full max-w-[1320px] px-5 py-8 md:py-12">
+    <section
+      id="hero"
+      /*
+       * ★ 다크 + 스포트라이트 (2026-07-31)
+       *   .bg-spotlight 는 globals.css 정의 — 딥 네이비 바닥 + 상단 파스텔 블루 광원.
+       *
+       * relative — 아래 "밝은 본문으로 넘어가는 그라디언트"(absolute)의 기준점.
+       * pt-20 은 고정 헤더 높이(80px) 확보용. 헤더가 fixed 라 이 패딩이 없으면
+       * 첫 슬라이드가 헤더 뒤로 들어간다.
+       */
+      className="bg-spotlight relative overflow-hidden pt-20"
+      aria-label="메인 배너 및 빠른 견적 문의"
+    >
+      {/* 하단 페이드 레이어는 2026-07-31 전면 다크 전환과 함께 제거했다.
+          밝은 본문으로 넘어갈 때 경계를 풀어 주려던 장치인데,
+          아래 섹션들도 전부 다크가 되면서 오히려 없는 편이 깔끔하다. */}
+
+      {/* relative z-10 — 위 그라디언트 장식보다 콘텐츠가 앞에 오도록 */}
+      <div className="relative z-10 mx-auto w-full max-w-[1320px] px-5 py-8 md:py-12">
         {/*
          * 레이아웃
          *  - 1024px 미만(기본) : 세로 스택 (캐러셀 위 / 폼 아래)
@@ -296,7 +313,9 @@ export default function HeroSection() {
               onKeyDown={handleKeyDown}
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
-              className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-line bg-surface md:aspect-[16/9] lg:aspect-auto lg:h-full lg:min-h-[30rem]"
+              /* 다크 전환(2026-07-31): 흰 계열(border-line / bg-surface)을 그대로 두면
+                 네이비 위에 흰 상자가 떠 있는 꼴이 된다. 다크 토큰으로 교체. */
+              className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-line-dark bg-navy-soft md:aspect-[16/9] lg:aspect-auto lg:h-full lg:min-h-[30rem]"
             >
               {/*
                * 트랙 : 슬라이드를 가로로 나열한 뒤 translateX 로 이동시킨다.
@@ -332,13 +351,15 @@ export default function HeroSection() {
                       />
 
                       {/*
-                       * 가독성 오버레이.
-                       * 배경이 밝은 회색이므로 왼쪽에서 흰색 그라데이션을 덮어
-                       * 진한 글자(text-ink)가 또렷하게 읽히도록 한다.
+                       * 가독성 오버레이 (2026-07-31 다크로 반전).
+                       * 이전에는 흰색 그라디언트를 덮어 진한 글자를 읽게 했는데,
+                       * 히어로가 다크로 바뀌면서 반대가 됐다 — 왼쪽에서 네이비를
+                       * 덮어 흰 글자가 또렷하게 읽히도록 한다.
+                       * 오른쪽으로 갈수록 투명해져 배경 이미지가 드러난다.
                        */}
                       <div
                         aria-hidden="true"
-                        className="absolute inset-0 bg-gradient-to-r from-white via-white/85 to-white/30"
+                        className="from-navy via-navy/85 to-navy/25 absolute inset-0 bg-gradient-to-r"
                       />
 
                       {/* 텍스트 오버레이 (카피 / 서브카피 / CTA) */}
@@ -349,7 +370,7 @@ export default function HeroSection() {
                         </span>
 
                         {/* 메인 카피 — 줄 배열을 순회해 <br> 없이 안전하게 줄바꿈 */}
-                        <h2 className="text-[1.35rem] leading-tight font-bold text-ink md:text-[2rem] lg:text-[2.5rem]">
+                        <h2 className="text-[1.35rem] leading-tight font-bold text-white md:text-[2rem] lg:text-[2.5rem]">
                           {slide.titleLines.map((line) => (
                             <span key={line} className="block">
                               {line}
@@ -358,14 +379,16 @@ export default function HeroSection() {
                         </h2>
 
                         {/* 서브 카피 — 모바일에서는 공간이 좁아 숨긴다 */}
-                        <p className="hidden max-w-[28rem] text-sm text-ink-sub md:block md:text-base">
+                        <p className="hidden max-w-[28rem] text-sm text-white/70 md:block md:text-base">
                           {slide.subtitle}
                         </p>
 
-                        {/* CTA — 같은 페이지 내 섹션으로 앵커 스크롤 */}
+                        {/* CTA — 같은 페이지 내 섹션으로 앵커 스크롤.
+                            다크 위에서는 채움색을 흰색으로 뒤집는 편이 가장 강하다.
+                            (bg-ink 였는데, 네이비 배경에서는 거의 보이지 않는다) */}
                         <a
                           href={slide.ctaHref}
-                          className="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-ink px-5 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-primary md:px-6 md:py-3 md:text-sm"
+                          className="hover:bg-primary-soft text-navy mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-white px-5 py-2.5 text-xs font-semibold transition-colors md:px-6 md:py-3 md:text-sm"
                         >
                           {slide.ctaLabel}
                           {/* 장식용 화살표 아이콘 (인라인 SVG) */}
@@ -474,7 +497,7 @@ export default function HeroSection() {
              * 흰 카드 + 그림자 + 라운드.
              * lg 이상에서는 캐러셀과 높이를 맞추기 위해 h-full 로 늘린다.
              */
-            className="flex h-full flex-col rounded-2xl border border-line bg-white p-6 shadow-[0_6px_24px_rgba(0,0,0,0.07)] md:p-7"
+            className="flex h-full flex-col rounded-2xl border border-line bg-surface p-6 shadow-[0_6px_24px_rgba(0,0,0,0.35)] md:p-7"
           >
             <h2 className="text-xl font-bold text-ink md:text-2xl">빠른 견적 문의</h2>
             <p className="mt-2 text-sm leading-relaxed text-ink-sub">

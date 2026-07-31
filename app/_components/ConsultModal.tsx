@@ -148,7 +148,7 @@ export default function ConsultModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="consult-modal-title"
-        className="relative max-h-[calc(100dvh-2rem)] w-full max-w-[26rem] overflow-y-auto rounded-2xl bg-white p-6 shadow-[0_12px_48px_rgba(0,0,0,0.24)] md:p-7"
+        className="relative max-h-[calc(100dvh-2rem)] w-full max-w-[26rem] overflow-y-auto rounded-2xl border border-line bg-surface p-6 shadow-[0_12px_48px_rgba(0,0,0,0.24)] md:p-7"
       >
         {/* 헤더 — 제목 + 닫기(X) 버튼 */}
         <div className="mb-1 flex items-start justify-between gap-3">

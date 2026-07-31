@@ -65,7 +65,7 @@ export default function VehicleCard({ vehicle, onConsult }: VehicleCardProps) {
                        (= 같은 행의 카드 높이가 정렬된다 — 구글폼 8-1 조잡함 회피)
       flex-col       : 하단 CTA 버튼을 mt-auto 로 바닥에 붙이기 위한 세로 플렉스
     */
-    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-white transition-shadow duration-300 hover:shadow-lg">
+    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-surface transition-shadow duration-300 hover:shadow-lg">
       {/*
         썸네일 영역
         - relative: 좌상단 분류 뱃지(absolute)의 위치 기준점.

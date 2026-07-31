@@ -28,11 +28,18 @@ export type ProcessStep = {
   /** 단계 설명 — 한 줄(30자 내외)로 통일한다 */
   description: string;
   /**
-   * 단계 이미지 자리 표시용 한국어 라벨 (2026-07-31 추가).
-   * Placeholder 컴포넌트의 label prop 으로 그대로 전달된다.
-   * 실제 사진을 받으면 이 라벨이 설명하는 장면으로 교체하면 된다.
+   * 단계 이미지 경로 (2026-07-31 실사진 적용).
+   * public/process/ 아래 파일명이 곧 단계 번호(01~05)다 —
+   * 클라이언트가 "순서대로" 전달한 사진이므로 step 번호와 파일명을 1:1로 맞춘다.
+   * next/image 의 src 로 그대로 넘어가므로 반드시 `/` 로 시작하는 절대 경로여야 한다.
    */
-  imageLabel: string;
+  image: string;
+  /**
+   * 이미지 대체 텍스트.
+   * 카드 안에 이미 제목·설명이 있으므로 그것을 그대로 반복하지 않고,
+   * "사진에 무엇이 찍혀 있는지"만 짧게 적는다(중복 낭독 방지).
+   */
+  imageAlt: string;
 };
 
 /** 상담 신청부터 사후 관리까지 5단계 */
@@ -41,30 +48,35 @@ export const processSteps: ProcessStep[] = [
     step: 1,
     title: "상담 신청",
     description: "연락처만 남기면 전화나 카카오톡으로 먼저 연락드립니다.",
-    imageLabel: "상담 신청 — 휴대폰으로 문의를 남기는 장면 이미지",
+    image: "/process/01.png",
+    imageAlt: "헤드셋을 착용한 상담 매니저가 사무실에서 문의 내용을 메모하는 모습",
   },
   {
     step: 2,
     title: "조건 비교·심사",
     description: "할부·리스·장기렌트 조건을 나란히 비교하고 심사합니다.",
-    imageLabel: "조건 비교·심사 — 할부·리스·장기렌트 조건을 나란히 비교하는 장면 이미지",
+    image: "/process/02.png",
+    imageAlt: "책상 위에 놓인 서류와 계산기를 두고 조건을 검토하며 기입하는 모습",
   },
   {
     step: 3,
     title: "방식 결정·계약",
     description: "가장 잘 맞는 방식을 함께 정하고 계약 서류를 준비합니다.",
-    imageLabel: "방식 결정·계약 — 상담 테이블에서 계약 서류를 작성하는 장면 이미지",
+    image: "/process/03.png",
+    imageAlt: "상담 테이블에서 차 키를 옆에 두고 계약 서류에 서명하는 모습",
   },
   {
     step: 4,
     title: "출고·인도",
     description: "출고 일정을 공유하고 원하시는 장소에서 인도해 드립니다.",
-    imageLabel: "출고·인도 — 신차 키를 건네받는 인도 장면 이미지",
+    image: "/process/04.png",
+    imageAlt: "전시장에 출고 준비를 마치고 세워져 있는 신차",
   },
   {
     step: 5,
     title: "사후 관리",
     description: "인수 후 관리 방법과 만기 선택지까지 계속 안내드립니다.",
-    imageLabel: "사후 관리 — 출고 후 관리 안내를 받는 장면 이미지",
+    image: "/process/05.png",
+    imageAlt: "담당 매니저가 고객에게 차 키를 건네주는 모습",
   },
 ];

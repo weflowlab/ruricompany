@@ -45,6 +45,8 @@
  *    transition-duration / delay 를 눌러 주므로 시차 없이 즉시 최종 상태로 표시된다.
  */
 
+import Image from "next/image";
+
 import SectionTitle from "@/app/_components/SectionTitle";
 import { servicePlans } from "@/app/_data/services";
 import { useInView } from "@/app/_hooks/useInView";
@@ -78,7 +80,7 @@ export default function ServiceSection() {
        * 흰 → 파스텔 → 흰 리듬이 생기고 흰 카드의 경계도 또렷해진다.
        * 상하 패딩 60px / 100px 은 다른 섹션과 동일한 리듬이다.
        */
-      className="bg-surface py-15 md:py-25"
+      className="bg-navy-soft py-15 md:py-25"
     >
       {/* 공통 컨테이너: 최대 1320px, 좌우 여백 20px */}
       <div className="mx-auto w-full max-w-[1320px] px-5">
@@ -135,7 +137,32 @@ export default function ServiceSection() {
                   hover 는 그림자만 아주 약하게 — 과한 움직임은 "전문적인" 톤을 깎는다.
                   그림자는 Tailwind 기본 유틸(shadow-sm → hover:shadow-lg)만 쓴다.
                   임의 rgba 값을 박아 넣으면 globals.css 의 토큰 체계 밖으로 색이 새어 나간다. */}
-              <article className="flex h-full flex-col rounded-2xl border border-line bg-white p-6 shadow-sm transition-shadow duration-300 ease-out hover:shadow-lg md:p-7">
+              <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-sm transition-shadow duration-300 ease-out hover:shadow-lg">
+                {/* ── 0) 카드 상단 이미지 (2026-07-31 실사진 적용) ───────────────
+                    이 자리는 원래 128px 아이콘 원형 + Placeholder 였다가 "회색 이미지
+                    자리 3개가 조잡하다"는 이유로 뺐던 곳이다(파일 상단 이력 참고).
+                    실사진이 들어오면서 되살렸지만, 카드가 다시 길어지지 않도록
+                    정사각·4:3 이 아니라 **21:9 가로 띠**로 얇게 쓴다.
+
+                    - full-bleed: 카드 안쪽 여백(px-6)을 무시하고 좌우 끝까지 채운다.
+                      그래서 패딩을 article 에서 걷어내고 아래 콘텐츠 블록으로 옮겼다.
+                    - article 에 overflow-hidden 을 줘서 이미지 위쪽 모서리가
+                      카드의 rounded-2xl 을 따라 잘리게 한다.
+                    - object-cover: 원본은 16:9 라 21:9 틀에서 위아래가 잘린다.
+                      세 장 모두 피사체가 가운데 있어 기본 center crop 으로 충분하다. */}
+                <div className="relative aspect-[21/9] w-full shrink-0 bg-navy-soft">
+                  <Image
+                    src={plan.image}
+                    alt={plan.imageAlt}
+                    fill
+                    /* 태블릿 이상 3열(최대 1320px ÷ 3 ≈ 440px), 그 미만은 1열이라 화면 폭 전체 */
+                    sizes="(min-width: 768px) 440px, 100vw"
+                    className="object-cover"
+                  />
+                </div>
+
+                {/* 텍스트 블록 — 이미지가 full-bleed 라 패딩을 여기서 준다 */}
+                <div className="flex flex-1 flex-col p-6 md:p-7">
                 {/*
                   1) 서비스명 — 카드에서 가장 굵고 큰 글자.
                   앞의 작은 원은 예전 128px 아이콘 자리를 대신하는 최소한의 표식이다.
@@ -203,6 +230,7 @@ export default function ServiceSection() {
                     {plan.bestFor}
                   </dd>
                 </dl>
+                </div>
               </article>
             </li>
           ))}
@@ -216,7 +244,7 @@ export default function ServiceSection() {
             예전에는 반대로 흰 섹션 위에 파스텔 박스였는데, 배경색이 바뀌면
             같은 색끼리 겹쳐 박스 경계가 사라진다.
         */}
-        <div className="mt-8 flex flex-col items-start gap-5 rounded-2xl border border-line bg-white px-7 py-8 text-left md:mt-12 md:flex-row md:items-center md:justify-between md:gap-8 md:px-10 md:py-10">
+        <div className="mt-8 flex flex-col items-start gap-5 rounded-2xl border border-line bg-surface px-7 py-8 text-left md:mt-12 md:flex-row md:items-center md:justify-between md:gap-8 md:px-10 md:py-10">
           {/*
             문구를 두 줄로 나눈다.
             첫 줄(굵게)이 고객의 상태를 짚고, 둘째 줄(회색)이 무엇을 해 주는지 알린다.

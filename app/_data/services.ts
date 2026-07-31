@@ -45,6 +45,14 @@ export type ServicePlan = {
   features: string[];
   /** "이런 분께 맞습니다" 한 줄 */
   bestFor: string;
+  /**
+   * 카드 상단 이미지 경로 (2026-07-31 실사진 적용).
+   * public/services/ 아래 01~03 이 이 배열 순서와 1:1로 대응한다.
+   * next/image 의 src 로 넘어가므로 `/` 로 시작하는 절대 경로여야 한다.
+   */
+  image: string;
+  /** 이미지 대체 텍스트. 카드의 name/summary 를 반복하지 않고 장면만 짧게 적는다 */
+  imageAlt: string;
 };
 
 /**
@@ -67,6 +75,8 @@ export const servicePlans: ServicePlan[] = [
       "만기 시 반납·재계약 절차 불필요",
     ],
     bestFor: "차를 오래 타고, 결국 내 것으로 남기고 싶은 분",
+    image: "/services/01.png",
+    imageAlt: "옥상 주차장에서 차 키를 들고 흰색 신차 옆에 서 있는 차주",
   },
   {
     id: "lease",
@@ -80,6 +90,8 @@ export const servicePlans: ServicePlan[] = [
       "만기 시 반납 / 인수 / 재계약 중 선택",
     ],
     bestFor: "사업자·법인으로 업무용 차량을 운행하는 분",
+    image: "/services/02.png",
+    imageAlt: "오피스 빌딩 앞에 세워진 짙은 회색 세단과 서류 가방을 든 정장 차림의 사업자",
   },
   {
     id: "rent",
@@ -93,5 +105,7 @@ export const servicePlans: ServicePlan[] = [
       "사고 시 개인 보험 등급에 영향 없음",
     ],
     bestFor: "초기 비용을 줄이고 관리까지 맡기고 싶은 분",
+    image: "/services/03.png",
+    imageAlt: "밝은 정비 센터에서 정비사가 흰색 신차의 앞부분을 점검하는 모습",
   },
 ];

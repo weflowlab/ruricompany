@@ -59,7 +59,7 @@ export default function FaqSection() {
     <section
       id="faq"
       aria-labelledby="faq-heading"
-      className="bg-white py-15 md:py-25"
+      className="py-15 md:py-25"
     >
       <div className="mx-auto w-full max-w-[1320px] px-5">
         {/* 섹션 타이틀 — 강조 단어만 primary 색으로 표시된다 */}
@@ -171,7 +171,7 @@ export default function FaqSection() {
                         {/* 좌측 A 배지 — Q 배지와 같은 크기, 대비를 위해 흰 배경 + primary 테두리 */}
                         <span
                           aria-hidden="true"
-                          className="border-primary text-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-full border bg-white text-[0.95rem] font-bold md:h-9 md:w-9 md:text-[1.05rem]"
+                          className="border-primary text-primary flex h-8 w-8 shrink-0 items-center justify-center rounded-full border bg-surface text-[0.95rem] font-bold md:h-9 md:w-9 md:text-[1.05rem]"
                         >
                           A
                         </span>

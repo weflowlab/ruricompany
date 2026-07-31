@@ -70,10 +70,19 @@ export default function Header() {
      * ==================================================================== */
     <header
       className={[
-        'fixed inset-x-0 top-0 z-50 h-20 border-b border-line bg-white',
-        'transition-shadow duration-300',
-        // 스크롤 10px 초과 시에만 그림자를 얹는다.
-        scrolled ? 'shadow-[0_4px_16px_rgba(0,0,0,0.08)]' : 'shadow-none',
+        'fixed inset-x-0 top-0 z-50 h-20',
+        'transition-[background-color,box-shadow,border-color] duration-300',
+        /*
+         * ★ 최상단에서는 투명 (2026-07-31)
+         *   히어로가 다크 + 스포트라이트로 바뀌면서, 흰 헤더를 그대로 두면
+         *   어두운 배너 위에 흰 띠가 가로로 얹힌 꼴이 됐다.
+         *   맨 위에서는 배경을 비워 히어로의 스포트라이트가 헤더 뒤까지 이어지게 하고,
+         *   스크롤을 내리면 네이비 반투명 + blur 로 바뀌어 본문 위에 얹힌다.
+         *   (전면 다크 전환 후 본문도 어두우므로 흰 헤더로 되돌리지 않는다)
+         */
+        scrolled
+          ? 'border-b border-line bg-navy/90 shadow-[0_4px_16px_rgba(0,0,0,0.4)] backdrop-blur-md'
+          : 'border-b border-transparent bg-transparent shadow-none',
       ].join(' ')}
     >
       {/*
@@ -100,7 +109,12 @@ export default function Header() {
               event.preventDefault();
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className="flex items-center gap-2 text-[1.25rem] font-extrabold tracking-tight whitespace-nowrap text-ink md:text-[1.4rem]"
+            /* 배경이 항상 어두우므로 로고는 흰 글자로 고정한다. */
+            className={[
+              'flex items-center gap-2 text-[1.25rem] font-extrabold tracking-tight whitespace-nowrap md:text-[1.4rem]',
+              'transition-colors duration-300',
+              'text-white',
+            ].join(' ')}
             aria-label={`${site.name} 홈으로 이동`}
           >
             {/* 로고 앞 primary 색 점 아이콘은 2026-07-31 제거했다 (클라이언트 요청). */}
@@ -115,7 +129,16 @@ export default function Header() {
           <a
             href="#quick-quote"
             aria-label="빠른 견적 문의 폼으로 이동"
-            className="rounded-full bg-primary px-4 py-2.5 text-[0.8rem] font-bold whitespace-nowrap text-white transition-colors duration-200 hover:bg-primary-hover md:px-6 md:py-3 md:text-[0.95rem]"
+            /* 최상단(투명)에서는 흰 채움 + 네이비 글자가 배너 위에서 가장 또렷하다.
+               스크롤 후에는 헤더에 네이비 배경이 깔리므로 primary 채움으로 바꿔
+               버튼이 배경과 분리돼 보이게 한다. */
+            className={[
+              'rounded-full px-4 py-2.5 text-[0.8rem] font-bold whitespace-nowrap md:px-6 md:py-3 md:text-[0.95rem]',
+              'transition-colors duration-300',
+              scrolled
+                ? 'bg-primary text-white hover:bg-primary-hover'
+                : 'text-navy hover:bg-primary-soft bg-white',
+            ].join(' ')}
           >
             빠른 견적 문의
           </a>

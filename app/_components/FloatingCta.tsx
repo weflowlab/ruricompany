@@ -98,27 +98,32 @@ export default function FloatingCta() {
           revealClass,
         ].join(' ')}
       >
-        {/* 전화 상담 — primary 배경 원형 버튼 */}
+        {/* 전화 상담 — primary 배경 원형 버튼.
+            ★ 2026-07-31 라벨 텍스트("전화") 제거 — 아이콘만 남긴다.
+              버튼이 56px 원인데 아이콘 + 6px 글자를 세로로 쌓으면 둘 다 작아진다.
+              아이콘 하나만 두고 크기를 키우는 편이 훨씬 또렷하다.
+              의미 전달은 aria-label / title 이 그대로 담당하므로 접근성 손실은 없다. */}
         <a
           href={telHref}
           aria-label={`전화 상담 ${site.tel}`}
           title={`전화 상담 ${site.tel}`}
-          className="flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-full bg-primary text-white shadow-[0_6px_16px_rgba(0,0,0,0.18)] transition-colors hover:bg-primary-hover"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-[0_6px_16px_rgba(0,0,0,0.18)] transition-colors hover:bg-primary-hover"
         >
-          <PhoneIcon />
-          <span className="text-[0.6rem] font-bold leading-none">전화</span>
+          <PhoneIcon size={24} />
         </a>
 
-        {/* 카톡 상담 — 카카오 옐로우 계열(고정 색상, 브랜드 토큰 아님) */}
+        {/* 카톡 상담 — 카카오톡 말풍선 색 조합(고정 색상, 브랜드 토큰 아님).
+            노란 면(#FEE500) + 갈색 말풍선(#3C1E1E) 이 카카오톡 심볼의 배색이다.
+            여기만 브랜드 색을 그대로 쓰는 이유: 카카오톡 버튼은 사용자가 색으로
+            먼저 알아보는 대상이라, 사이트 톤에 맞춰 파랗게 바꾸면 오히려 못 알아본다. */}
         <button
           type="button"
           onClick={handleKakao}
           aria-label="카카오톡 상담 열기"
           title="카카오톡 상담"
-          className="flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-full bg-[#FEE500] text-[#3C1E1E] shadow-[0_6px_16px_rgba(0,0,0,0.18)] transition-colors hover:bg-[#F2DA00]"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-[#FEE500] text-[#3C1E1E] shadow-[0_6px_16px_rgba(0,0,0,0.18)] transition-colors hover:bg-[#F2DA00]"
         >
-          <ChatIcon />
-          <span className="text-[0.6rem] font-bold leading-none">카톡</span>
+          <ChatIcon size={24} />
         </button>
 
         {/* 맨 위로 — 흰 배경 + 라인 테두리로 앞의 두 버튼과 위계를 구분 */}
@@ -127,7 +132,7 @@ export default function FloatingCta() {
           onClick={scrollToTop}
           aria-label="페이지 맨 위로 이동"
           title="맨 위로"
-          className="flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-full border border-line bg-white text-ink shadow-[0_6px_16px_rgba(0,0,0,0.12)] transition-colors hover:bg-surface"
+          className="flex h-14 w-14 flex-col items-center justify-center gap-0.5 rounded-full border border-line bg-surface text-ink shadow-[0_6px_16px_rgba(0,0,0,0.4)] transition-colors hover:bg-navy-soft"
         >
           <ArrowUpIcon />
           <span className="text-[0.6rem] font-bold leading-none">TOP</span>
@@ -141,7 +146,7 @@ export default function FloatingCta() {
        * ================================================================== */}
       <div
         className={[
-          'fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white md:hidden',
+          'fixed inset-x-0 bottom-0 z-40 border-t border-line bg-navy-soft md:hidden',
           'pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_16px_rgba(0,0,0,0.08)]',
           'transition-all duration-300 ease-out',
           revealClass,
@@ -168,7 +173,9 @@ export default function FloatingCta() {
             aria-label="카카오톡 상담 열기"
             className="flex flex-col items-center justify-center gap-1 border-r border-line py-2.5 text-ink transition-colors active:bg-surface"
           >
-            <span className="text-[#3C1E1E]">
+            {/* 다크 바 위에서는 갈색(#3C1E1E)이 거의 보이지 않으므로
+                카카오 옐로우를 아이콘 색으로 쓴다 (2026-07-31 다크 전환 대응) */}
+            <span className="text-[#FEE500]">
               <ChatIcon />
             </span>
             <span className="text-[0.75rem] font-bold leading-none">카톡상담</span>
@@ -195,10 +202,10 @@ export default function FloatingCta() {
  * stroke="currentColor" 라서 부모의 text 색상을 그대로 따라간다.
  * ========================================================================== */
 
-/** 수화기 아이콘 — 전화 상담 */
-function PhoneIcon() {
+/** 수화기 아이콘 — 전화 상담. size 로 크기를 조절한다(기본 20px) */
+function PhoneIcon({ size = 20 }: { size?: number }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none" aria-hidden="true">
       <path
         d="M4.5 2.5h3l1.5 3.75-1.9 1.15a11 11 0 0 0 4.5 4.5l1.15-1.9L16.5 11.5v3a2 2 0 0 1-2.2 2A14.5 14.5 0 0 1 3 4.7a2 2 0 0 1 1.5-2.2Z"
         stroke="currentColor"
@@ -209,15 +216,16 @@ function PhoneIcon() {
   );
 }
 
-/** 말풍선 아이콘 — 카카오톡 상담 */
-function ChatIcon() {
+/** 말풍선 아이콘 — 카카오톡 상담. size 로 크기를 조절한다(기본 20px) */
+function ChatIcon({ size = 20 }: { size?: number }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+    <svg width={size} height={size} viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      {/* 2026-07-31: 외곽선만 있던 말풍선을 면으로 채웠다(fill).
+          노란 원 위에 얇은 선 하나만 있으면 카카오톡 심볼로 잘 읽히지 않는다.
+          실제 심볼도 갈색 면으로 채워진 말풍선이다. */}
       <path
         d="M10 3c4 0 7 2.4 7 5.4 0 3-3 5.4-7 5.4-.6 0-1.2-.05-1.75-.15L4.7 16.2l.85-2.85C4 12.4 3 10.6 3 8.4 3 5.4 6 3 10 3Z"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
+        fill="currentColor"
       />
     </svg>
   );
