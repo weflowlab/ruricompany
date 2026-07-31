@@ -34,7 +34,6 @@ import { useState } from 'react';
 
 import SectionTitle from './SectionTitle';
 import { faqItems } from '../_data/faq';
-import { site } from '../_data/site';
 import { useInView } from '../_hooks/useInView';
 
 export default function FaqSection() {
@@ -193,25 +192,9 @@ export default function FaqSection() {
             })}
           </ul>
 
-          {/* ── 하단 CTA 한 줄 ─────────────────────────────────────────── */}
-          {/* 목록에서 답을 못 찾은 사용자를 상담 섹션/전화로 넘겨 준다 */}
-          <p className="text-ink-sub mt-8 text-center text-[0.92rem] leading-relaxed md:mt-10 md:text-[1rem]">
-            더 궁금한 점은 상담으로 확인해 주세요.{' '}
-            <a
-              href="#consult"
-              className="text-primary hover:text-primary-hover font-semibold underline underline-offset-4"
-            >
-              온라인 상담 신청
-            </a>{' '}
-            또는{' '}
-            <a
-              href={`tel:${site.tel}`}
-              aria-label={`${site.name} 상담 전화 ${site.tel} 로 연결`}
-              className="text-primary hover:text-primary-hover font-semibold underline underline-offset-4"
-            >
-              {site.tel}
-            </a>
-          </p>
+          {/* 하단 CTA 한 줄("더 궁금한 점은 상담으로 확인해 주세요 …")은
+              2026-07-31 삭제했다. 상단 히어로에 이미 견적 폼이 있고,
+              모바일 플로팅 바에도 전화/상담 버튼이 상시 떠 있어 중복이었다. */}
         </div>
       </div>
     </section>

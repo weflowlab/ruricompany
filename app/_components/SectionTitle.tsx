@@ -27,8 +27,12 @@ type SectionTitleProps = {
   title: string;
   /** 브랜드 그린으로 강조할 단어. 없으면 렌더링하지 않는다 */
   highlight?: string;
-  /** 제목 아래 보조 설명문. 없으면 렌더링하지 않는다 */
-  description?: string;
+  /**
+   * 제목 아래 보조 설명문. 없으면 렌더링하지 않는다.
+   * 배열로 넘기면 한 칸이 한 줄이 된다 — 문장 단위로 줄을 끊고 싶을 때 사용.
+   * (<br> 을 문자열에 심는 대신 heroSlides.titleLines 와 같은 배열 방식을 따른다)
+   */
+  description?: string | string[];
 };
 
 export default function SectionTitle({
@@ -49,10 +53,17 @@ export default function SectionTitle({
         {highlight ? <span className="text-primary">{highlight}</span> : null}
       </h2>
 
-      {/* 설명문 — 한 줄이 너무 길어지지 않도록 최대 폭을 제한하고 가운데 정렬 */}
+      {/* 설명문 — 한 줄이 너무 길어지지 않도록 최대 폭을 제한하고 가운데 정렬.
+          배열이면 칸마다 block span 으로 쌓아 문장 단위 줄바꿈을 만든다. */}
       {description ? (
         <p className="mx-auto mt-3 max-w-[640px] text-sm leading-relaxed text-ink-sub md:mt-4 md:text-base">
-          {description}
+          {Array.isArray(description)
+            ? description.map((line) => (
+                <span key={line} className="block">
+                  {line}
+                </span>
+              ))
+            : description}
         </p>
       ) : null}
     </header>

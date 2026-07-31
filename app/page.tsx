@@ -22,29 +22,28 @@
  *    `scroll-padding-top: 80px` 이 걸려 있다.
  *
  * 앵커 id 대응표 (app/_data/site.ts 의 navItems 와 반드시 일치해야 한다)
- *  - #reviews  → ReviewSection   (섹션 컴포넌트가 자체적으로 id 를 가진다)
+ *  - #services → ServiceSection  (섹션 컴포넌트가 자체적으로 id 를 가진다)
  *  - #vehicles → VehicleSection  (이 파일에서 id prop 으로 주입)
  *  - #process  → ProcessSection  (자체 id)
- *  - #ev       → VehicleSection  (이 파일에서 id prop 으로 주입)
  *  - #faq      → FaqSection      (자체 id)
- *  - #consult  → ConsultSection  (자체 id) — 각 카드/폼의 "상담받기" CTA 목적지
+ *  - #hero     → HeroSection     (자체 id) — 각 카드/버튼의 "상담받기" CTA 목적지
+ *
+ * ⚠️ 하단 상담 섹션 제거 (2026-07-31)
+ *    페이지 최하단에 있던 <ConsultSection /> 을 뺐다. 히어로 우측에 이미 빠른 견적
+ *    폼(<ConsultForm variant="compact" />)이 있어 같은 폼이 한 페이지에 두 번 놓였다.
+ *    그래서 페이지 곳곳의 "상담받기" CTA 목적지를 #consult → #hero 로 모두 바꿨다.
+ *    ConsultSection.tsx 파일은 지우지 않고 남겨 두었다 (import·렌더만 제거).
  */
 
 import HeroSection from "./_components/HeroSection";
-import ReviewSection from "./_components/ReviewSection";
+import ServiceSection from "./_components/ServiceSection";
 import VehicleSection from "./_components/VehicleSection";
 import TextBanner from "./_components/TextBanner";
 import ProcessSection from "./_components/ProcessSection";
 import FaqSection from "./_components/FaqSection";
-import PartnerMarquee from "./_components/PartnerMarquee";
-import ConsultSection from "./_components/ConsultSection";
 import Footer from "./_components/Footer";
 
-import {
-  popularVehicles,
-  cargoVehicles,
-  evVehicles,
-} from "./_data/vehicles";
+import { popularVehicles, cargoVehicles } from "./_data/vehicles";
 
 export default function Home() {
   return (
@@ -62,12 +61,22 @@ export default function Home() {
             1024px 미만에서는 캐러셀 위 / 폼 아래로 세로 스택된다. */}
         <HeroSection />
 
-        {/* ── 2. 실제 고객 후기 (id="reviews") ─────────────────────────────────
-            원본 대응: 히어로 바로 아래 "실제 이용 후기" 마퀴 영역.
-            후기 카드가 좌측으로 무한히 흐르고 마우스를 올리면 정지한다.
-            카드를 클릭하면 이미지 슬라이더가 포함된 모달이 열린다.
-            768px 미만에서는 마퀴를 끄고 세로 그리드로 전환된다. */}
-        <ReviewSection />
+        {/* ── 2. 서비스 안내 (id="services") ───────────────────────────────────
+            원본(truck-1st)에서는 이 자리가 고객 후기 마퀴였다. 2026-07-31 교체.
+
+            왜 바꿨나
+              후기는 "다른 사람이 좋았다"는 신뢰 신호일 뿐, 방문자가 첫 화면에서
+              실제로 막히는 지점("할부·리스·장기렌트 중 뭘 골라야 하지")을 풀어 주지 못한다.
+              업종이 3종(신차 할부 / 신차 장기렌트 / 신차 리스)이므로, 히어로 바로 다음에
+              세 방식을 비교해 주는 것이 이탈을 가장 크게 줄인다.
+
+            <ServiceSection /> 은 3열 비교 카드 + 하단 상담 CTA 하나로 구성되며,
+            금액을 일절 노출하지 않고 "성격"과 "이런 분께 맞습니다"만 비교한다.
+
+            ⚠️ ReviewSection.tsx 와 _data/reviews.ts 는 지우지 않고 남겨 두었다.
+               이 파일에서 import·렌더만 빠져 번들에는 포함되지 않는다.
+               후기 섹션을 되살릴 일이 생기면 import 두 줄만 되돌리면 된다. */}
+        <ServiceSection />
 
         {/* ── 3. 이번 달 인기 차량 (id="vehicles") ─────────────────────────────
             원본 대응: 첫 번째 차량 리스트 섹션.
@@ -107,37 +116,12 @@ export default function Home() {
             데스크톱은 화살표로 이어진 가로 5열 / 모바일은 점선으로 이어진 세로 1열이다. */}
         <ProcessSection />
 
-        {/* ── 7. 전기 화물차 특가 (id="ev") ────────────────────────────────────
-            원본 대응: 세 번째 차량 리스트 섹션(전기 화물차 프로모션).
-            바로 위 이용 절차 섹션의 배경이 옅은 연두색이므로,
-            여기서는 surface 를 주지 않고 흰 배경으로 두어 대비를 만든다. */}
-        <VehicleSection
-          id="ev"
-          title="보조금까지 챙기는 "
-          highlight="전기 화물차 특가"
-          description="유류비 부담을 크게 줄인 전기 화물차입니다. 지역별 보조금 적용 후 예상 금액을 안내해 드립니다."
-          vehicles={evVehicles}
-        />
-
-        {/* ── 8. 자주 묻는 질문 (id="faq") ─────────────────────────────────────
+        {/* ── 7. 자주 묻는 질문 (id="faq") ─────────────────────────────────────
             원본 대응: 하단 FAQ 아코디언 섹션.
             한 번에 하나의 항목만 열리고, grid-template-rows 0fr↔1fr 트랜지션으로
             높이가 부드럽게 늘어난다. 닫힌 패널은 inert 로 키보드 탐색에서 제외된다. */}
         <FaqSection />
 
-        {/* ── 9. 제휴 금융사 로고 마퀴 ─────────────────────────────────────────
-            원본 대응: 하단 제휴사 로고 띠.
-            동일한 로고 그룹을 두 벌 렌더한 뒤 트랙을 translateX(0 → -50%) 시켜
-            이음새 없이 무한히 흐르게 한다. 마우스 호버/포커스 시 정지한다. */}
-        <PartnerMarquee />
-
-        {/* ── 10. 하단 상담 신청 (id="consult") ────────────────────────────────
-            원본 대응: 페이지 최하단 상담 신청 영역.
-            좌측은 전체 항목을 다 받는 상담 폼(<ConsultForm variant="full" />),
-            우측은 전화·카카오톡 CTA 카드다.
-            페이지 곳곳의 "상담받기" 버튼과 모바일 플로팅 바의 "무료견적" 버튼이
-            모두 이 섹션(#consult)으로 스크롤된다. */}
-        <ConsultSection />
       </main>
 
       {/* ── 11. 푸터 ──────────────────────────────────────────────────────────

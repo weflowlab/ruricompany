@@ -19,7 +19,7 @@
  *
  * ▸ 주의
  *   - 카톡 상담은 실제 채널이 없으므로 클릭 시 alert 로 대체한다(더미 동작).
- *   - 무료 견적은 페이지 하단 상담 섹션(#consult)으로 앵커 이동한다.
+ *   - 무료 견적은 페이지 상단 히어로 견적 폼(#hero)으로 앵커 이동한다.
  */
 
 import { useEffect, useState } from 'react';
@@ -176,7 +176,7 @@ export default function FloatingCta() {
 
           {/* 무료 견적 — 페이지 하단 상담 폼 섹션으로 앵커 이동 */}
           <a
-            href="#consult"
+            href="#hero"
             aria-label="무료 견적 신청 폼으로 이동"
             className="flex flex-col items-center justify-center gap-1 bg-primary py-2.5 text-white transition-colors active:bg-primary-hover"
           >

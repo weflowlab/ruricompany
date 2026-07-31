@@ -63,21 +63,26 @@ const heroSlides: HeroSlide[] = [
   },
   {
     id: 'slide-02',
-    eyebrow: '전기 화물차 특가',
+    eyebrow: '실구매가 안내',
     titleLines: ['보조금까지 계산한', '실구매가 안내'],
     subtitle: '지역별 보조금 잔여 현황을 확인하고 예상 월 납입금을 알려 드립니다.',
-    ctaLabel: '전기 화물차 특가 보기',
-    ctaHref: '#ev',
+    ctaLabel: '실구매가 문의하기',
+    /* 2026-07-31 교체: 전기 화물차 특가 섹션(#ev)을 삭제해 앵커가 사라졌다.
+       이 슬라이드는 "실구매가를 알려 준다"는 내용이라, 목적지를 견적 폼으로 돌리고
+       버튼 문구도 도착지에 맞췄다. */
+    ctaHref: '#hero',
     imageLabel: '히어로 배너 2 — 전기 화물차 충전 장면 이미지',
   },
   {
     id: 'slide-03',
-    eyebrow: '누적 상담 후기',
-    titleLines: ['먼저 이용하신 분들의', '솔직한 후기를 확인하세요'],
-    subtitle: '차량 인수부터 서류 처리까지 실제 진행 과정을 그대로 공개합니다.',
-    ctaLabel: '고객 후기 보기',
-    ctaHref: '#reviews',
-    imageLabel: '히어로 배너 3 — 차량 인도식 기념 촬영 이미지',
+    eyebrow: '구매 방식 비교',
+    titleLines: ['할부·리스·장기렌트', '무엇이 맞는지 먼저 보세요'],
+    subtitle: '좋고 나쁨이 아니라 상황에 맞고 안 맞음의 차이입니다. 세 방식의 성격을 비교해 드립니다.',
+    ctaLabel: '내게 맞는 방식 보기',
+    /* 2026-07-31 교체: 고객 후기 섹션이 서비스 안내로 바뀌면서 #reviews 앵커가 사라졌다.
+       앵커만 바꾸면 문구("후기 보기")와 도착지가 어긋나므로 카피도 함께 맞췄다. */
+    ctaHref: '#services',
+    imageLabel: '히어로 배너 3 — 상담 테이블에서 조건을 비교하는 장면 이미지',
   },
   {
     id: 'slide-04',
@@ -261,7 +266,11 @@ export default function HeroSection() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
           {/* ───────────────── 좌측 : 자체 구현 캐러셀 ───────────────── */}
           <div
-            className="lg:col-span-2"
+            /* lg:h-full — 2026-07-31 좌우 높이 정렬.
+               캐러셀은 비율(aspect)로, 폼은 내용으로 높이가 정해져서 둘이 어긋났다.
+               그리드 행 높이는 더 긴 쪽(폼)이 정하게 두고, 캐러셀이 거기에 맞춰 늘어나도록
+               이 칸을 h-full 로 채운다. */
+            className="lg:col-span-2 lg:h-full"
             /* 마우스가 들어오면 자동재생 일시정지, 나가면 재개 */
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
@@ -275,7 +284,10 @@ export default function HeroSection() {
                * - role="region" + aria-roledescription 으로 스크린리더에 "캐러셀"임을 알린다.
                * - tabIndex={0} 을 줘서 키보드 좌우 방향키 조작이 가능하도록 포커스를 받는다.
                * - overflow-hidden 이 트랙의 나머지 3장을 잘라 준다.
-               * - 비율은 모바일 4/3 → 태블릿 16/9 → 데스크톱 16/10 으로 조정.
+               * - 비율은 모바일 4/3 → 태블릿 16/9.
+               *   ★ lg 이상에서는 비율을 풀고(aspect-auto) h-full 로 바꿨다 (2026-07-31).
+               *     비율로 높이를 고정하면 우측 폼이 더 길 때 캐러셀만 짧게 남아 아래가 빈다.
+               *     min-h 는 반대 경우(폼이 짧을 때) 캐러셀이 납작해지는 것을 막는 하한선이다.
                */
               role="region"
               aria-roledescription="캐러셀"
@@ -284,7 +296,7 @@ export default function HeroSection() {
               onKeyDown={handleKeyDown}
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
-              className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-line bg-surface md:aspect-[16/9] lg:aspect-[16/10]"
+              className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-line bg-surface md:aspect-[16/9] lg:aspect-auto lg:h-full lg:min-h-[30rem]"
             >
               {/*
                * 트랙 : 슬라이드를 가로로 나열한 뒤 translateX 로 이동시킨다.
@@ -379,73 +391,22 @@ export default function HeroSection() {
               </div>
 
               {/*
-               * 우하단 컨트롤 바.
-               * [이전] [현재 / 전체] [다음] [재생·일시정지] 순서.
-               * 트랙 위에 떠 있어야 하므로 absolute + z-10.
+               * ★ 좌하단 컨트롤 (2026-07-31 개편 — 원본 캡처에 맞춤)
+               *
+               * 이전 구성 : 우하단 흰색 바에 [이전][1 / 4][다음][재생·일시정지] 4개.
+               * 바뀐 구성 : 좌하단 어두운 알약 하나에 [재생·일시정지][3 / 4] 둘뿐.
+               *
+               * 왜 화살표를 뺐나
+               *  원본이 그렇다. 그리고 이 캐러셀은 2초마다 자동으로 넘어가므로 화살표의
+               *  실효가 낮다 — 누르려고 조준하는 사이에 이미 다음 장으로 넘어간다.
+               *  대신 넘기는 수단은 그대로 살아 있다: 좌우 스와이프(터치)와
+               *  ← → 방향키(캐러셀에 포커스가 있을 때). 둘 다 기존 로직 그대로다.
+               *
+               * 왜 어두운 색인가
+               *  배너 이미지 위에 얹히는 요소라, 흰 알약은 밝은 이미지에서 묻힌다.
+               *  검정 반투명 + backdrop-blur 면 어떤 이미지 위에서도 대비가 유지된다.
                */}
-              <div className="absolute right-4 bottom-4 z-10 flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 shadow-[0_2px_10px_rgba(0,0,0,0.12)] backdrop-blur-sm md:right-6 md:bottom-6">
-                {/* 이전 버튼 */}
-                <button
-                  type="button"
-                  onClick={goPrev}
-                  aria-label="이전 배너 보기"
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-ink-sub transition-colors hover:bg-surface hover:text-ink"
-                >
-                  <svg
-                    aria-hidden="true"
-                    focusable="false"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-4 w-4"
-                  >
-                    <path d="M15 6l-6 6 6 6" />
-                  </svg>
-                </button>
-
-                {/*
-                 * 페이징 표시 "1 / 4".
-                 * aria-live="polite" 로 슬라이드가 바뀔 때 스크린리더가 현재 위치를 읽어 준다.
-                 * tabular-nums 로 숫자 폭을 고정해 전환 시 흔들리지 않게 한다.
-                 */}
-                <p
-                  aria-live="polite"
-                  aria-atomic="true"
-                  className="min-w-[3.25rem] text-center text-xs font-semibold tabular-nums text-ink"
-                >
-                  <span className="text-primary">{index + 1}</span>
-                  <span className="mx-1 text-ink-sub">/</span>
-                  <span className="text-ink-sub">{total}</span>
-                </p>
-
-                {/* 다음 버튼 */}
-                <button
-                  type="button"
-                  onClick={goNext}
-                  aria-label="다음 배너 보기"
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-ink-sub transition-colors hover:bg-surface hover:text-ink"
-                >
-                  <svg
-                    aria-hidden="true"
-                    focusable="false"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-4 w-4"
-                  >
-                    <path d="M9 6l6 6-6 6" />
-                  </svg>
-                </button>
-
-                {/* 구분선 */}
-                <span aria-hidden="true" className="mx-0.5 h-4 w-px bg-line" />
-
+              <div className="absolute bottom-4 left-4 z-10 flex items-center gap-2.5 rounded-full bg-black/45 py-2 pr-4 pl-3 backdrop-blur-sm md:bottom-6 md:left-6">
                 {/*
                  * 재생 / 일시정지 토글.
                  * isPaused 만 뒤집으며, hover 로 인한 일시정지에는 영향을 주지 않는다.
@@ -456,7 +417,7 @@ export default function HeroSection() {
                   onClick={() => setIsPaused((prev) => !prev)}
                   aria-pressed={isPaused}
                   aria-label={isPaused ? '배너 자동 재생 시작' : '배너 자동 재생 일시정지'}
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-ink-sub transition-colors hover:bg-surface hover:text-ink"
+                  className="flex h-5 w-5 cursor-pointer items-center justify-center text-white/90 transition-colors hover:text-white"
                 >
                   {isPaused ? (
                     // 일시정지 상태 → 재생(▶) 아이콘 노출
@@ -483,12 +444,31 @@ export default function HeroSection() {
                     </svg>
                   )}
                 </button>
+
+                {/*
+                 * 페이징 표시 "3 / 4".
+                 * aria-live="polite" 로 슬라이드가 바뀔 때 스크린리더가 현재 위치를 읽어 준다.
+                 * tabular-nums 로 숫자 폭을 고정해 전환 시 좌우로 흔들리지 않게 한다.
+                 */}
+                <p
+                  aria-live="polite"
+                  aria-atomic="true"
+                  className="text-sm font-semibold tabular-nums text-white"
+                >
+                  {index + 1}
+                  <span className="mx-1 text-white/60">/</span>
+                  <span className="text-white/60">{total}</span>
+                </p>
               </div>
             </div>
           </div>
 
           {/* ───────────────── 우측 : 빠른 견적 문의 카드 ───────────────── */}
           <aside
+            /* 헤더 우측 "빠른 견적 문의" 버튼과 각 CTA 의 스크롤 목적지 (2026-07-31 추가).
+               #hero 로 보내면 섹션 맨 위(캐러셀)에 멈춰 폼이 화면 밖에 남는 경우가 있어,
+               폼 카드 자체에 앵커를 달아 정확히 이 자리로 오게 했다. */
+            id="quick-quote"
             aria-label="빠른 견적 문의"
             /*
              * 흰 카드 + 그림자 + 라운드.

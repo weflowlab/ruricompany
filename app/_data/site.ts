@@ -25,10 +25,10 @@ export type NavItem = {
  * (globals.css 의 scroll-padding-top: 80px 덕분에 고정 헤더에 가려지지 않는다.)
  */
 export const navItems: NavItem[] = [
-  { id: "reviews", label: "실제 고객 후기", href: "#reviews" },
+  { id: "services", label: "서비스 안내", href: "#services" },
   { id: "vehicles", label: "추천 차량", href: "#vehicles" },
   { id: "process", label: "이용 절차", href: "#process" },
-  { id: "ev", label: "전기 화물차 특가", href: "#ev" },
+  /* "전기 화물차 특가 → #ev" 항목은 2026-07-31 해당 섹션 삭제와 함께 제거했다. */
   { id: "faq", label: "자주 묻는 질문", href: "#faq" },
 ];
 
@@ -46,6 +46,35 @@ export const site = {
     "화물차 리스·장기렌트 상담부터 출고까지 한 번에. 초기 비용 부담을 낮춘 맞춤 견적을 안내해 드립니다.",
   company: "루리컴퍼니 주식회사",
   ceo: "홍길동",
+  /** 담당자 성함 — 상담 폼/모달에 "담당 ○○○" 형태로 노출 (예시값) */
+  manager: "홍길동",
   bizNo: "000-00-00000",
   address: "서울특별시 예시구 샘플대로 000, 0층 000호",
+  /** 푸터 사업자 정보 줄에 노출하는 대표 이메일 (예시값) */
+  email: "contact@example.com",
+  /**
+   * 푸터 대형 헤드라인 (2026-07-31 추가).
+   * 배열 한 칸 = 한 줄. 푸터에서 가장 큰 글자로, "무엇을 하는 곳인지"를 못 박는 자리다.
+   * 문구를 <br> 로 강제하지 않고 배열로 두어 줄 수를 자유롭게 늘릴 수 있게 했다.
+   */
+  footerHeadline: ["신차 할부·리스·장기렌트", "조건 비교부터 출고까지"],
 };
+
+/** 상담 폼의 "연락 받을 방법" 선택지 한 항목 */
+export type ContactMethod = {
+  /** input value 로 쓰이는 고유 id */
+  id: string;
+  /** 라디오 버튼에 노출되는 라벨 */
+  label: string;
+};
+
+/**
+ * 연락 방법 선택지 (2026-07-31 추가 — ConsultForm 이 참조한다).
+ *
+ * 기존 3지선다(전화/문자/카톡)에서 문자를 뺀 2지선다다.
+ * 선택지를 줄이면 입력 부담이 줄어든다.
+ */
+export const contactMethods: ContactMethod[] = [
+  { id: "phone", label: "전화" },
+  { id: "kakao", label: "카카오톡" },
+];

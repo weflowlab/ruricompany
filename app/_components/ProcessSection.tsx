@@ -4,14 +4,17 @@
  * ProcessSection — "이용 절차" 5단계 섹션 (id="process")
  *
  * 역할
- *  - 상담 신청부터 차량 출고까지의 과정을 5개 스텝 카드로 보여 준다.
+ *  - 신차 상담 신청부터 출고·사후 관리까지의 과정을 5개 스텝 카드로 보여 준다.
  *  - 데이터는 `app/_data/process.ts` 의 `processSteps` 를 그대로 사용한다.
  *  - GNB 의 "이용 절차" 앵커(#process) 목적지이므로 section 에 id 를 부여했다.
  *
- * 배경 구조 (원본 대응)
- *  - 원본은 "배경 사진 + 연노랑(#F9FCEF) 90% 오버레이" 2겹 구조였다.
+ * 배경 구조 (원본 대응 + 컬러 방향 수정)
+ *  - 원본은 "배경 사진 + 연노랑 90% 오버레이" 2겹 구조였다.
  *    이 클론은 실제 이미지를 쓰지 않으므로 배경 사진 자리를 <Placeholder /> 로 깔고,
- *    그 위에 동일한 색/투명도의 오버레이를 덮어 같은 인상을 만든다.
+ *    그 위에 오버레이를 덮어 같은 인상을 만든다.
+ *  - ★구글폼 13번(블루 계열 + 파스텔톤) 반영: 오버레이의 하드코딩 연노랑(#F9FCEF)을
+ *    파스텔 블루 토큰 `bg-surface`(--color-surface #f5f8fd) 로 교체했다.
+ *    노란 기운이 남아 있으면 페이지 전체의 블루 톤과 어긋나 조잡해 보인다(8-1번).
  *  - 두 레이어 모두 absolute inset-0 이며 순수 장식이라 pointer-events 를 막았다.
  *
  * 레이아웃
@@ -67,7 +70,8 @@ export default function ProcessSection() {
       {/* ── 배경 1겹: 이미지 자리 (실제 사진 대신 플레이스홀더) ───────────────── */}
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
         <Placeholder
-          label="이용 절차 섹션 배경 이미지 (물류 현장 전경)"
+          /* 업종 변경(구글폼 3번)에 맞춰 라벨을 물류 현장 → 신차 전시장으로 교체 */
+          label="이용 절차 섹션 배경 이미지 (신차 전시장 전경)"
           /*
            * absolute inset-0 로 높이가 이미 정해지므로 비율 계산은 필요 없다.
            * ratio="auto" 를 넘겨 aspect-ratio 가 높이를 덮어쓰지 않게 한다.
@@ -77,31 +81,55 @@ export default function ProcessSection() {
         />
       </div>
 
-      {/* ── 배경 2겹: 연노랑 오버레이 90% (원본의 #F9FCEF 오버레이 재현) ──────── */}
+      {/*
+        ── 배경 2겹: 파스텔 블루 오버레이 90% ──────────────────────────────────
+        구글폼 13번(블루 + 파스텔) 반영으로 하드코딩 연노랑을 토큰으로 교체했다.
+        bg-surface = --color-surface(#f5f8fd) → 아주 옅은 블루 그레이.
+        /90 투명도를 유지해 뒤 배경 플레이스홀더의 결이 살짝 남게 한다.
+      */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[#F9FCEF]/90"
+        className="bg-surface/90 pointer-events-none absolute inset-0"
       />
 
       {/* ── 실제 콘텐츠 (배경 레이어보다 위) ─────────────────────────────────── */}
-      <div className="relative z-10 mx-auto w-full max-w-[1320px] px-5">
-        {/* 섹션 제목 — SectionTitle 이 h2 + 강조 span + 설명 p 와 하단 여백까지 담당한다 */}
-        <SectionTitle
-          title="처음이어도 어렵지 않은 "
-          highlight="5단계 이용 절차"
-          description="상담 신청부터 차량 인수까지, 지금 어디쯤 왔는지 항상 알 수 있게 안내해 드립니다."
-        />
+      <div className="relative z-10">
+        {/*
+          섹션 제목 — SectionTitle 이 h2 + 강조 span + 설명 p 와 하단 여백까지 담당한다.
+          문구는 구글폼 3번(신차 할부·리스·장기렌트)과 4번(상담 문의 유도)에 맞춰
+          "상담 한 번으로 시작된다"는 인상을 주도록 다듬었다.
+          제목은 다른 섹션과 같은 폭(1320px)을 유지한다 — 넓히는 건 스텝 목록만.
+        */}
+        <div className="mx-auto w-full max-w-[1320px] px-5">
+          <SectionTitle
+            title="처음이어도 어렵지 않은 "
+            highlight="5단계 이용 절차"
+            description="상담 신청부터 차량 인도까지, 지금 어느 단계인지 항상 알 수 있게 안내해 드립니다."
+          />
+        </div>
 
         {/*
           스텝 목록.
           - 순서가 의미를 가지므로 ul 이 아닌 ol 을 쓴다.
           - 모바일: 세로 스택(flex-col) / 데스크톱: 가로 한 줄(lg:flex-row).
           - lg 에서 items-stretch 로 카드 높이를 서로 맞춘다.
+          - ★컨테이너를 제목(1320px)보다 넓은 1480px 로 잡았다: 데스크톱에서
+            5칸 + 화살표 4개가 한 줄에 놓이면 카드 하나가 좁아져 답답해 보인다는
+            피드백 반영. 카드 한 장의 가로 폭을 키우는 것이 목적이므로
+            목록 래퍼만 넓히고 제목 블록은 건드리지 않는다.
+          - ★화살표 배치 방식 변경 (좌우 여백 불일치 수정):
+            이전에는 화살표가 카드와 같은 flex 흐름에 있었고, 5칸 너비를 맞추려고
+            마지막 카드 뒤에 "invisible 화살표"를 자리만 차지시켰다. 그 투명 화살표
+            때문에 목록의 오른쪽 여백이 왼쪽보다 넓어 보이는 문제가 있었다.
+            이제는 lg 에서 카드 사이를 gap-12(48px)로 벌리고, 화살표(24px)는
+            흐름에서 빼서 각 li 오른쪽 gap 의 정중앙에 절대배치한다.
+            → 투명 화살표가 필요 없어져 좌우 여백이 대칭이 된다.
         */}
-        <ol
-          ref={listRef}
-          className="flex flex-col items-stretch lg:flex-row lg:items-stretch"
-        >
+        <div className="mx-auto w-full max-w-[1480px] px-5">
+          <ol
+            ref={listRef}
+            className="flex flex-col items-stretch lg:flex-row lg:items-stretch lg:gap-12"
+          >
           {processSteps.map((item, index) => {
             // 마지막 카드 뒤에는 "보이는" 연결선을 그리지 않는다
             const isLast = index === processSteps.length - 1;
@@ -112,12 +140,13 @@ export default function ProcessSection() {
                 /*
                  * lg:flex-1 → `flex: 1 1 0%` 이므로 기준 너비가 0 에서 출발한다.
                  *   덕분에 설명문 길이와 무관하게 5개 항목이 정확히 같은 너비를 나눠 갖는다.
+                 *   (화살표가 흐름 밖(절대배치)으로 빠졌으므로 투명 화살표 없이도
+                 *    5칸 너비가 그대로 균등하다)
                  * lg:min-w-0 → flex 항목의 기본 min-width:auto 때문에 긴 단어가
                  *   칸을 밀어내는 현상을 막는다.
-                 * lg:flex-row → 카드와 연결 화살표가 가로로 나란히 놓인다.
-                 * lg:items-stretch → 카드가 li 높이를 꽉 채워 5칸 높이가 서로 맞는다.
+                 * relative → 데스크톱 연결 화살표(absolute)의 위치 기준점.
                  */
-                className="flex flex-col items-stretch lg:min-w-0 lg:flex-1 lg:flex-row lg:items-stretch"
+                className="relative flex flex-col items-stretch lg:min-w-0 lg:flex-1"
               >
                 {/*
                   등장(stagger) 전용 래퍼.
@@ -151,20 +180,39 @@ export default function ProcessSection() {
                       "hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(0,0,0,0.10)]",
                     ].join(" ")}
                   >
-                    {/* 원형 번호 배지 — primary 배경 + 흰 숫자 */}
-                    <span
-                      aria-hidden="true"
-                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-lg font-extrabold text-white shadow-[0_4px_12px_rgba(3,199,90,0.35)] transition-transform duration-300 group-hover:scale-110"
-                    >
-                      {/* 1 → "01" 형태로 0 을 채워 표시 */}
-                      {String(item.step).padStart(2, "0")}
-                    </span>
+                    {/* ── 단계 이미지 자리 (2026-07-31 추가) ──────────────────
+                        각 단계에 실제 사진을 넣기로 해서 자리를 먼저 잡았다.
+                        원형 번호 배지는 이미지 위 좌상단에 겹쳐 둔다 — 이미지와 배지를
+                        위아래로 따로 쌓으면 카드가 세로로 길어져, 데스크톱에서 5칸이
+                        나란히 놓였을 때 섹션 전체가 지나치게 높아진다.
+                        비율은 4/3 고정. 5장이 같은 비율이어야 한 줄로 늘어섰을 때
+                        아래 텍스트 시작 위치가 서로 어긋나지 않는다. */}
+                    <div className="relative w-full">
+                      <Placeholder
+                        label={item.imageLabel}
+                        ratio="4/3"
+                        rounded
+                      />
+
+                      {/*
+                        원형 번호 배지 — primary 배경 + 흰 숫자.
+                        이미지 좌상단에 살짝 걸치도록 음수 offset 을 준다.
+                        (article 에 overflow-hidden 이 없어 잘리지 않는다)
+                      */}
+                      <span
+                        aria-hidden="true"
+                        className="bg-primary shadow-primary/25 absolute -top-2 -left-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-base font-extrabold text-white shadow-md transition-transform duration-300 group-hover:scale-110"
+                      >
+                        {/* 1 → "01" 형태로 0 을 채워 표시 */}
+                        {String(item.step).padStart(2, "0")}
+                      </span>
+                    </div>
 
                     {/*
                       STEP 라벨 — 시각적으로는 작은 보조 문구지만,
                       위 배지가 aria-hidden 이므로 스크린리더에는 여기서 단계 번호를 읽어 준다.
                     */}
-                    <span className="mt-3 text-[11px] font-bold tracking-widest text-primary uppercase">
+                    <span className="mt-4 text-[11px] font-bold tracking-widest text-primary uppercase">
                       STEP {String(item.step).padStart(2, "0")}
                     </span>
 
@@ -181,40 +229,46 @@ export default function ProcessSection() {
                 </div>
 
                 {/* ── 카드 사이 연결선 (순수 장식) ─────────────────────────
-                    마지막 항목에서는:
-                      - 모바일: 아예 렌더 영역을 없앤다(hidden) → 꼬리 점선이 남지 않음
-                      - 데스크톱: invisible 로 자리만 차지시켜 5개 칸 너비를 균등하게 유지
+                    마지막 항목 뒤에는 아무것도 렌더하지 않는다.
+                    (이전의 "invisible 화살표로 자리 차지" 방식은 목록 오른쪽에만
+                     여백이 더 생겨 좌우가 비대칭이 되는 문제가 있었다)
                 */}
-                <span
-                  aria-hidden="true"
-                  className={[
-                    "items-center justify-center",
-                    isLast ? "hidden lg:invisible lg:flex" : "flex",
-                  ].join(" ")}
-                >
-                  {/* 모바일/태블릿: 세로 점선 (카드 위아래를 잇는 모양) */}
-                  <span className="my-2 block h-7 border-l-2 border-dashed border-primary/45 lg:hidden" />
+                {!isLast && (
+                  <>
+                    {/* 모바일/태블릿: 세로 점선 (카드 위아래를 잇는 모양) — 흐름 안에 둔다 */}
+                    <span
+                      aria-hidden="true"
+                      className="flex items-center justify-center lg:hidden"
+                    >
+                      <span className="my-2 block h-7 border-l-2 border-dashed border-primary/45" />
+                    </span>
 
-                  {/* 데스크톱: 오른쪽 화살표 — 외부 아이콘 없이 인라인 SVG 로 직접 그린다 */}
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    focusable="false"
-                    className="mx-1 hidden h-6 w-6 shrink-0 text-primary/55 lg:block xl:mx-2"
-                  >
-                    {/* 가로선 + 화살촉 */}
-                    <path d="M4 12h14" />
-                    <path d="M13 7l5 5-5 5" />
-                  </svg>
-                </span>
+                    {/* 데스크톱: 오른쪽 화살표 — li 오른쪽 gap(48px)의 정중앙에 절대배치.
+                        left-full: li 오른쪽 끝에서 시작 / translate-x-1/2: 화살표(24px)의
+                        절반만큼 밀어 48px gap 정중앙에 오게 한다. 세로는 top-1/2 + -translate-y-1/2 로
+                        카드 높이의 중앙에 맞춘다. 흐름 밖이므로 칸 너비에 영향이 없다. */}
+                    <svg
+                      aria-hidden="true"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      focusable="false"
+                      className="pointer-events-none absolute top-1/2 left-full hidden h-6 w-6 translate-x-1/2 -translate-y-1/2 text-primary/55 lg:block"
+                    >
+                      {/* 가로선 + 화살촉 */}
+                      <path d="M4 12h14" />
+                      <path d="M13 7l5 5-5 5" />
+                    </svg>
+                  </>
+                )}
               </li>
             );
           })}
-        </ol>
+          </ol>
+        </div>
       </div>
     </section>
   );
