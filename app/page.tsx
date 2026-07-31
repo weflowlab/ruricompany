@@ -1,65 +1,150 @@
-import Image from "next/image";
+/**
+ * page.tsx — 메인 랜딩 페이지 (`/`)
+ *
+ * 역할
+ *  - 각 섹션 컴포넌트를 원본 사이트와 동일한 순서로 위에서 아래로 조립하기만 한다.
+ *    실제 마크업·인터랙션은 전부 하위 섹션 컴포넌트가 책임진다.
+ *  - 더미 데이터(app/_data/*)를 재사용 컴포넌트인 <VehicleSection /> 에 주입하는 역할도 맡는다.
+ *
+ * 서버 컴포넌트인 이유
+ *  - 이 파일 자체에는 상태·이벤트 핸들러·브라우저 API 가 전혀 없고 조립만 한다.
+ *    따라서 'use client' 가 필요 없으며, 서버에서 HTML 로 렌더되어 초기 로딩이 빠르다.
+ *  - 인터랙션이 필요한 섹션(Hero 캐러셀, Review 모달, FAQ 아코디언 등)은
+ *    각자 파일 최상단에 'use client' 를 선언한 클라이언트 컴포넌트이므로,
+ *    서버 컴포넌트인 이 페이지에서 그대로 자식으로 렌더할 수 있다.
+ *
+ * 레이아웃 관련 메모
+ *  - 고정 헤더(<Header />)와 플로팅 CTA(<FloatingCta />)는 모든 페이지 공통이라
+ *    이 파일이 아니라 app/layout.tsx 에서 렌더한다.
+ *  - 헤더가 position: fixed / height: 80px 이므로 첫 섹션인 <HeroSection /> 이
+ *    내부에서 pt-20(=80px) 으로 자리를 비워 준다. 여기서 별도 보정을 하지 않는다.
+ *  - 앵커 스크롤 시 제목이 헤더에 가리지 않도록 globals.css 에
+ *    `scroll-padding-top: 80px` 이 걸려 있다.
+ *
+ * 앵커 id 대응표 (app/_data/site.ts 의 navItems 와 반드시 일치해야 한다)
+ *  - #reviews  → ReviewSection   (섹션 컴포넌트가 자체적으로 id 를 가진다)
+ *  - #vehicles → VehicleSection  (이 파일에서 id prop 으로 주입)
+ *  - #process  → ProcessSection  (자체 id)
+ *  - #ev       → VehicleSection  (이 파일에서 id prop 으로 주입)
+ *  - #faq      → FaqSection      (자체 id)
+ *  - #consult  → ConsultSection  (자체 id) — 각 카드/폼의 "상담받기" CTA 목적지
+ */
+
+import HeroSection from "./_components/HeroSection";
+import ReviewSection from "./_components/ReviewSection";
+import VehicleSection from "./_components/VehicleSection";
+import TextBanner from "./_components/TextBanner";
+import ProcessSection from "./_components/ProcessSection";
+import FaqSection from "./_components/FaqSection";
+import PartnerMarquee from "./_components/PartnerMarquee";
+import ConsultSection from "./_components/ConsultSection";
+import Footer from "./_components/Footer";
+
+import {
+  popularVehicles,
+  cargoVehicles,
+  evVehicles,
+} from "./_data/vehicles";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <>
+      {/*
+        <main> 은 페이지당 하나여야 하므로 푸터를 제외한 본문 전체를 감싼다.
+        id="main-content" 는 layout.tsx 의 "본문 바로가기" 스킵 링크 목적지다.
+        flex-1 로 남는 세로 공간을 차지해, 콘텐츠가 짧아도 푸터가 화면 위로 올라오지 않는다.
+      */}
+      <main id="main-content" className="flex-1">
+        {/* ── 1. 히어로 ────────────────────────────────────────────────────────
+            원본 대응: 첫 화면 메인 비주얼 영역.
+            좌측은 4장짜리 자동재생 캐러셀(2초 간격, 무한 루프, 이전/다음 + 재생·일시정지),
+            우측은 이름·연락처만 받는 축약형 빠른 견적 폼(<ConsultForm variant="compact" />).
+            1024px 미만에서는 캐러셀 위 / 폼 아래로 세로 스택된다. */}
+        <HeroSection />
+
+        {/* ── 2. 실제 고객 후기 (id="reviews") ─────────────────────────────────
+            원본 대응: 히어로 바로 아래 "실제 이용 후기" 마퀴 영역.
+            후기 카드가 좌측으로 무한히 흐르고 마우스를 올리면 정지한다.
+            카드를 클릭하면 이미지 슬라이더가 포함된 모달이 열린다.
+            768px 미만에서는 마퀴를 끄고 세로 그리드로 전환된다. */}
+        <ReviewSection />
+
+        {/* ── 3. 이번 달 인기 차량 (id="vehicles") ─────────────────────────────
+            원본 대응: 첫 번째 차량 리스트 섹션.
+            재사용 컴포넌트 <VehicleSection /> 에 인기 차량 4대를 주입한다.
+            데스크톱 4열 / 모바일 2열 그리드이며, 스크롤 진입 시 카드가 80ms 간격으로
+            순차 페이드업하고 호버하면 썸네일이 확대된다. */}
+        <VehicleSection
+          id="vehicles"
+          title="이번 달 "
+          highlight="인기 차량"
+          description="상담 신청이 가장 많았던 차량을 모았습니다. 월 납입금과 조건을 한눈에 비교해 보세요."
+          vehicles={popularVehicles}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+
+        {/* ── 4. 텍스트 배너 ───────────────────────────────────────────────────
+            원본 대응: 차량 리스트 사이를 끊어 주는 primary(그린) 배경 가로 띠.
+            스크롤 진입 시 배지 → 메인 카피 순서로 페이드업한다. */}
+        <TextBanner />
+
+        {/* ── 5. 일반 화물차 (id="cargo") ──────────────────────────────────────
+            원본 대응: 두 번째 차량 리스트 섹션. 3번 섹션과 동일한 그리드를 재사용한다.
+            surface prop 으로 배경을 연회색(#f9f9f9)으로 깔아
+            위아래 흰 배경 섹션과 시각적으로 구분한다. */}
+        <VehicleSection
+          id="cargo"
+          title="용도별로 고르는 "
+          highlight="일반 화물차"
+          description="1톤 소형부터 중형 카고까지, 적재 용도에 맞춘 기본 라인업입니다."
+          vehicles={cargoVehicles}
+          surface
+        />
+
+        {/* ── 6. 이용 절차 (id="process") ──────────────────────────────────────
+            원본 대응: 상담 신청부터 출고까지의 5단계 안내 섹션.
+            배경은 플레이스홀더 이미지 위에 #F9FCEF 를 90% 불투명도로 덮은 형태다.
+            스크롤 진입 시 단계별로 120ms 씩 시차를 두고 등장하며,
+            데스크톱은 화살표로 이어진 가로 5열 / 모바일은 점선으로 이어진 세로 1열이다. */}
+        <ProcessSection />
+
+        {/* ── 7. 전기 화물차 특가 (id="ev") ────────────────────────────────────
+            원본 대응: 세 번째 차량 리스트 섹션(전기 화물차 프로모션).
+            바로 위 이용 절차 섹션의 배경이 옅은 연두색이므로,
+            여기서는 surface 를 주지 않고 흰 배경으로 두어 대비를 만든다. */}
+        <VehicleSection
+          id="ev"
+          title="보조금까지 챙기는 "
+          highlight="전기 화물차 특가"
+          description="유류비 부담을 크게 줄인 전기 화물차입니다. 지역별 보조금 적용 후 예상 금액을 안내해 드립니다."
+          vehicles={evVehicles}
+        />
+
+        {/* ── 8. 자주 묻는 질문 (id="faq") ─────────────────────────────────────
+            원본 대응: 하단 FAQ 아코디언 섹션.
+            한 번에 하나의 항목만 열리고, grid-template-rows 0fr↔1fr 트랜지션으로
+            높이가 부드럽게 늘어난다. 닫힌 패널은 inert 로 키보드 탐색에서 제외된다. */}
+        <FaqSection />
+
+        {/* ── 9. 제휴 금융사 로고 마퀴 ─────────────────────────────────────────
+            원본 대응: 하단 제휴사 로고 띠.
+            동일한 로고 그룹을 두 벌 렌더한 뒤 트랙을 translateX(0 → -50%) 시켜
+            이음새 없이 무한히 흐르게 한다. 마우스 호버/포커스 시 정지한다. */}
+        <PartnerMarquee />
+
+        {/* ── 10. 하단 상담 신청 (id="consult") ────────────────────────────────
+            원본 대응: 페이지 최하단 상담 신청 영역.
+            좌측은 전체 항목을 다 받는 상담 폼(<ConsultForm variant="full" />),
+            우측은 전화·카카오톡 CTA 카드다.
+            페이지 곳곳의 "상담받기" 버튼과 모바일 플로팅 바의 "무료견적" 버튼이
+            모두 이 섹션(#consult)으로 스크롤된다. */}
+        <ConsultSection />
       </main>
-    </div>
+
+      {/* ── 11. 푸터 ──────────────────────────────────────────────────────────
+          원본 대응: 사업자 정보 + 개인정보처리방침 아코디언이 있는 다크 푸터.
+          <main> 바깥에 두어 "본문"과 "사이트 정보"를 의미적으로 분리한다.
+          모바일에서는 하단 고정 플로팅 바에 가리지 않도록 아래쪽 여백을 크게 준다. */}
+      <Footer />
+    </>
   );
 }
